@@ -8,7 +8,7 @@ const num = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 });
 const num1 = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 1 });
 const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const estado = { config: null, sesion: null, aristasPintadas: 0 };
+const estado = { config: null, sesion: null, aristasPintadas: 0, vista: "SE" };
 
 // ------------------------------------------------------------ utilidades
 function h(tag, attrs = {}, ...hijos) {
@@ -34,6 +34,13 @@ const hora = (n) => `${String(n).padStart(2, "0")}:00`;
 const fecha = (iso) => new Date(iso).toLocaleString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const nivelDe = (v) => (v <= 6 ? "bajo" : v <= 12 ? "medio" : v <= 19 ? "alto" : "crítico");
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+// [7,8,9,18] -> "07:00-10:00, 18:00-19:00"
+function rangos(horas) {
+  const hs = [...new Set(horas)].sort((a, b) => a - b), out = [];
+  let ini = hs[0];
+  hs.forEach((x, i) => { if (hs[i + 1] !== x + 1) { out.push(`${hora(ini)}-${hora(x + 1)}`); ini = hs[i + 1]; } });
+  return out.join(", ");
+}
 
 async function pedir(ruta, opciones = {}) {
   let r;
@@ -173,8 +180,20 @@ function construirFormulario() {
       h("input", { type: "radio", name: "periodo", value: p.id, checked: p.id === "1m" }),
       h("span", {}, p.nombre))));
   $("condicion").replaceChildren(...condiciones.map((c) => h("option", { value: c.id }, c.nombre)));
+  const nombreAlim = Object.fromEntries(red.alimentadores.map((a) => [a.clave, `${a.clave} · ${a.nivel === "MT" ? "media tensión" : "baja tensión"}`]));
+  $("alimentador").replaceChildren(...estado.config.alimentadores_falla.map((k) => h("option", { value: k }, nombreAlim[k] || k)));
+  $("condicion").addEventListener("change", describirCondicion);
+  describirCondicion();
   $("red-resumen").textContent = `${red.subestacion}, ${red.tension_mt_kv} kV a ${red.tension_bt}`;
   $("form-analisis").addEventListener("submit", analizar);
+}
+
+function describirCondicion() {
+  const id = $("condicion").value;
+  const c = estado.config.condiciones.find((x) => x.id === id);
+  $("condicion-desc").textContent = c ? c.descripcion : "";
+  $("campo-alimentador").hidden = id !== "falla_alimentador";
+  $("campo-crecimiento").hidden = id !== "crecimiento_demanda";
 }
 
 async function analizar(ev) {
@@ -187,9 +206,11 @@ async function analizar(ev) {
   $("circuito-estado").classList.remove("espera");
   $("circuito-estado").textContent = "Los agentes están trabajando…";
   $("circuito-pie").textContent = "";
+  const cuerpo = { periodo: datos.get("periodo"), condicion: datos.get("condicion"), falla: datos.get("falla") || "ninguna" };
+  if (cuerpo.condicion === "falla_alimentador") cuerpo.alimentador = datos.get("alimentador");
+  if (cuerpo.condicion === "crecimiento_demanda") cuerpo.crecimiento_pct = Number(datos.get("crecimiento") || 15);
   try {
-    const ses = await pedir("/sesiones", { method: "POST", body: JSON.stringify({
-      periodo: datos.get("periodo"), condicion: datos.get("condicion"), falla: datos.get("falla") || "ninguna" }) });
+    const ses = await pedir("/sesiones", { method: "POST", body: JSON.stringify(cuerpo) });
     await mostrar(ses);
     $("decision").focus({ preventScroll: true });
   } catch (e) {
@@ -241,8 +262,14 @@ function pintarDecision(ses) {
 
   if (p) {
     hijos.push(h("h2", { id: "t-decision" }, p.nombre, " ", h("span", { class: "escenario-id" }, `(${p.escenario})`)));
+    hijos.push(h("div", { class: "insignias" },
+      p.robusto
+        ? h("span", { class: "insignia ok", title: "Sin déficit aunque la demanda llegue a P90 y las renovables bajen a P10" }, "Robusta ante P90")
+        : h("span", { class: "insignia riesgo", title: "Con demanda P90 y renovables P10 habría déficit" },
+          `No robusta: ${num.format(p.metricas.deficit_p90_kwh)} kWh de déficit en P90`),
+      p.metricas.recorte_kwh > 0 ? h("span", { class: "insignia" }, `Recorte planificado con la banda ${p.base_planificacion}`) : null));
     if (p.modo === "contingencia") {
-      hijos.push(h("p", { class: "error" }, "La demanda prevista supera la capacidad disponible. Esta propuesta incluye suspensiones controladas de cargas no críticas; el hospital nunca se suspende."));
+      hijos.push(h("p", { class: "error" }, "La demanda prevista supera la capacidad disponible. Esta propuesta recorta parcialmente cargas no críticas, solo los kW necesarios y por prioridad; el hospital conserva el 100 % de su suministro."));
     }
     const lista = h("ul", { class: "acciones" },
       p.acciones.map((a) => a.startsWith("  ·")
@@ -257,13 +284,33 @@ function pintarDecision(ses) {
       lineaMetrica("Cubierto con renovables", `${num1.format(m.renovable_pct)} %`, dif("renovable_pct"), false),
       lineaMetrica("Margen mínimo de capacidad", `${num1.format(m.margen_min_pct)} %`, dif("margen_min_pct"), false),
       lineaMetrica("Consumo que cambia de horario", `${num.format(m.desplazado_kwh)} kWh`, null),
-      m.suspendido_kwh > 0 ? lineaMetrica("Energía suspendida", `${num.format(m.suspendido_kwh)} kWh`, null) : null,
+      m.recorte_kwh > 0 ? lineaMetrica("Recorte parcial", `${num.format(m.recorte_kwh)} kWh`, null) : null,
+      lineaMetrica("Pérdidas técnicas", `${num.format(m.perdidas_kwh)} kWh`, null),
       p.evaluacion_iso ? lineaMetrica("Riesgo máximo", `${p.evaluacion_iso.riesgo_max} (${p.evaluacion_iso.categoria_max})`, null) : null);
     hijos.push(metr);
 
+    if (p.recorte_por_carga.length) {
+      const maxR = Math.max(...p.recorte_por_carga.map((r) => r.kwh));
+      hijos.push(h("h3", {}, "Recorte parcial por carga"));
+      hijos.push(h("ul", { class: "barras recortes" }, p.recorte_por_carga.map((r) =>
+        h("li", {},
+          h("div", { class: "rotulo" }, h("span", {}, r.carga), h("b", {}, `${num.format(r.kwh)} kWh`)),
+          h("div", { class: "sub" }, `Hasta ${num.format(r.kw_max)} kW, ${r.horas.length} h (${rangos(r.horas)})`),
+          h("div", { class: "barra-recorte" }, h("i", { style: `width:${(r.kwh / maxR) * 100}%` }))))));
+    }
+
+    hijos.push(h("h3", {}, "Distribución por alimentador"));
+    hijos.push(h("div", { class: "alimentadores" }, Object.entries(p.alimentadores).map(([k, a]) =>
+      h("div", {},
+        h("b", {}, `${k}${a.carga_critica ? " · con carga crítica" : ""}`),
+        h("div", { class: "uso", title: `Uso máximo ${num1.format(a.utilizacion_max_pct)} %` },
+          h("i", { class: a.utilizacion_max_pct >= 90 ? "alto" : "", style: `width:${Math.min(100, a.utilizacion_max_pct)}%` })),
+        `Uso máx. ${num1.format(a.utilizacion_max_pct)} % · margen ${num1.format(a.margen_min_pct)} %`,
+        h("div", { class: "sub" }, `Renovable ${num.format(a.renovable_usada_kwh)} kWh · convencional ${num.format(a.convencional_kwh)} kWh` +
+          (a.recorte_kwh ? ` · recorte ${num.format(a.recorte_kwh)} kWh` : ""))))));
+
     hijos.push(h("h3", {}, "Por qué esta recomendación"));
-    hijos.push(h("ol", { class: "reglas" }, p.justificacion.map((j) => h("li", {}, j.replace(/^Regla \d: /, "")))));
-  } else if (ses.motivo_escalamiento) {
+    hijos.push(h("ol", { class: "reglas" }, p.justificacion.map((j) => h("li", {}, j.replace(/^Regla \d: /, "")))));  } else if (ses.motivo_escalamiento) {
     hijos.push(h("h2", { id: "t-decision" }, "No hay una propuesta que puedas aprobar"));
     hijos.push(h("ul", { class: "acciones" }, ses.motivo_escalamiento.map((t) => h("li", {}, t))));
   }
@@ -317,12 +364,33 @@ function pintarGrafica(ses) {
   const cont = $("grafica");
   const p = ses.propuesta;
   $("grafica-sub").textContent = `Pronóstico para el ${new Date(ses.dia_recomendado + "T12:00").toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}. ${ses.condicion.nombre}.`;
-  if (!p) { cont.replaceChildren(h("p", { class: "sub" }, "Sin propuesta que graficar.")); $("grafica-leyenda").replaceChildren(); return; }
+  if (!p) {
+    cont.replaceChildren(h("p", { class: "sub" }, "Sin propuesta que graficar."));
+    $("grafica-leyenda").replaceChildren(); $("grafica-vista").replaceChildren(); $("grafica-resumen").textContent = "";
+    return;
+  }
+
+  // Selector: subestación completa o un alimentador
+  const vistas = p.serie.por_alimentador;
+  if (!vistas[estado.vista]) estado.vista = "SE";
+  $("grafica-vista").replaceChildren(...Object.keys(vistas).map((k) =>
+    h("button", { type: "button", "aria-pressed": String(k === estado.vista),
+      onclick: () => { estado.vista = k; pintarGrafica(estado.sesion); } },
+      k === "SE" ? "Subestación" : k)));
+  const se = vistas[estado.vista];
+  const resumenAlim = estado.vista === "SE" ? null : p.alimentadores[estado.vista];
+  $("grafica-resumen").textContent = estado.vista === "SE"
+    ? `${se.nombre}: capacidad convencional ${num.format(se.capacidad_kw)} kW.`
+    : `${se.nombre}: puede entregar ${num.format(se.capacidad_kw)} kW a sus cargas (cabecera ${num.format(resumenAlim.capacidad_kw)} kW` +
+      (resumenAlim.capacidad_trafo_bt_kw ? `, transformadores BT ${num.format(resumenAlim.capacidad_trafo_bt_kw)} kW` : "") +
+      `). Uso máximo ${num1.format(resumenAlim.utilizacion_max_pct)} %.`;
 
   const W = 760, H = 330, ml = 58, mr = 12, mt = 30, mb = 36;
-  const se = p.serie, base = se.demanda_base, rec = se.demanda_recomendada, ren = se.renovable;
-  const limite = ren.map((r) => r + se.capacidad_kw);
-  const maxY = Math.max(...base, ...rec, ...limite) * 1.06;
+  const base = se.demanda_base, rec = se.demanda_recomendada, ren = se.renovable;
+  const p10 = se.demanda_p10, p90 = se.demanda_p90;
+  const limite = se.limite;
+  const horasRecorte = se.horas_recorte;
+  const maxY = Math.max(...base, ...rec, ...limite, ...p90) * 1.06;
   const x = (i) => ml + (i / 23) * (W - ml - mr);
   const y = (v) => mt + (1 - v / maxY) * (H - mt - mb);
   const linea = (arr) => arr.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
@@ -345,19 +413,27 @@ function pintarGrafica(ses) {
   eje.append(s("text", { x: ml - 8, y: 14, "text-anchor": "end" }, "kW"));
   svg.append(eje);
   svg.append(s("path", { d: `${linea(ren)} L${x(23)},${y(0)} L${x(0)},${y(0)} Z`, fill: "rgba(140,203,94,.38)" }));
+  // Banda P10-P90 del pronóstico de demanda
+  const banda = `${linea(p90)} ${p10.map((v, i) => `L${x(23 - i).toFixed(1)},${y(p10[23 - i]).toFixed(1)}`).join(" ")} Z`;
+  svg.append(s("path", { d: banda, fill: "rgba(201,214,210,.16)", stroke: "rgba(201,214,210,.35)", "stroke-width": 0.8 }));
   svg.append(s("path", { d: linea(limite), fill: "none", stroke: "#EE8467", "stroke-width": 1.6, "stroke-dasharray": "2 5" }));
   svg.append(s("path", { d: linea(base), fill: "none", stroke: "#C9D6D2", "stroke-width": 2, "stroke-dasharray": p.escenario === "S0" ? null : "6 5" }));
   if (p.escenario !== "S0") svg.append(s("path", { d: linea(rec), fill: "none", stroke: "#35D6F0", "stroke-width": 2.8 }));
-  for (const hs of se.horas_suspension) svg.append(s("circle", { cx: x(hs), cy: y(rec[hs]), r: 5, fill: "#EE8467" }));
+  for (const hs of horasRecorte) {
+    const t = s("circle", { cx: x(hs), cy: y(rec[hs]), r: 5, fill: "#EE8467" });
+    t.append(s("title", {}, `${hora(hs)}: recorte de ${num.format(se.recorte[hs])} kW`));
+    svg.append(t);
+  }
   cont.replaceChildren(svg);
 
   const item = (estilo, texto) => h("li", {}, h("i", { style: estilo }), texto);
   $("grafica-leyenda").replaceChildren(...sinNulos([
     item("background:#C9D6D2", "Demanda sin cambios"),
+    item("background:rgba(201,214,210,.3);border:1px solid rgba(201,214,210,.5)", "Banda P10–P90 de la demanda"),
     p.escenario !== "S0" ? item("background:#35D6F0", "Demanda con la recomendación") : null,
-    item("background:rgba(140,203,94,.6)", "Generación renovable"),
+    item("background:rgba(140,203,94,.6)", estado.vista === "SE" ? "Generación renovable" : "Renovable de este alimentador"),
     item("background:#EE8467;height:2px", "Límite de suministro"),
-    se.horas_suspension.length ? item("background:#EE8467;border-radius:50%;width:.7rem", "Suspensión controlada") : null,
+    horasRecorte.length ? item("background:#EE8467;border-radius:50%;width:.7rem", "Recorte parcial") : null,
     item("background:rgba(140,203,94,.25)", "Tarifa base"),
     item("background:rgba(238,132,103,.3)", "Tarifa punta")]));
 }
@@ -407,9 +483,12 @@ function pintarISO(ses) {
     h("li", {}, h("b", {}, i.grupo, h("span", { class: `efecto ${i.efecto}` }, i.efecto)), i.detalle)));
   const t = ses.trazabilidad;
   const p = $("trazabilidad");
-  p.classList.toggle("alerta", !!(t && t.alerta_deriva));
+  p.classList.toggle("alerta", !!(t && (t.alerta_deriva || t.alerta_calibracion_bandas)));
+  const cobertura = t && t.cobertura_bandas_pct != null
+    ? ` Cobertura de las bandas P10–P90: ${num1.format(t.cobertura_bandas_pct)} % de ${t.lecturas_validacion_bandas} lecturas reales (nominal ${t.cobertura_nominal_pct} %).`
+    : " Cobertura de las bandas: sin datos (se necesitan al menos 3 días).";
   p.textContent = t
-    ? `Modelo ${t.version_modelo}, etapa “${t.etapa_ciclo_vida}”. Error de pronóstico: ${t.mape_pct ?? "sin datos"} %. ${t.accion_monitoreo}. Huella de los datos analizados: ${t.huella_analisis}.`
+    ? `Modelo ${t.version_modelo}, etapa “${t.etapa_ciclo_vida}”. Error de pronóstico: ${t.mape_pct ?? "sin datos"} %.${cobertura} ${t.accion_monitoreo}. Huella de los datos analizados: ${t.huella_analisis}.`
     : "";
 }
 
@@ -425,6 +504,9 @@ function pintarAlternativas(ses) {
       h("td", { class: "num" }, `${num1.format(e.renovable_pct)} %`),
       h("td", { class: "num" }, num.format(e.deficit_kwh)),
       h("td", { class: "num" }, num.format(e.desplazado_kwh)),
+      h("td", { class: "num" }, num.format(e.recorte_kwh)),
+      h("td", {}, e.robusto ? h("span", { class: "efecto positivo" }, "Sí")
+        : h("span", { class: "efecto negativo", title: `Déficit en P90: ${num.format(e.deficit_p90_kwh)} kWh` }, "No")),
       h("td", {}, e.riesgo_max == null ? "" : h("span", { class: `nivel ${nivelDe(e.riesgo_max)}` }, e.riesgo_max)))));
 }
 

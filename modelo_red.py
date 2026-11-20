@@ -51,6 +51,21 @@ class FuenteRenovable:
 
 
 @dataclass
+class Alimentador:
+    """Alimentador de media tensión que sale de la subestación.
+
+    capacidad_kw: límite térmico del troncal medido en la cabecera.
+    transformador_bt_kw: capacidad agregada de los transformadores MT/BT que
+    alimentan a las cargas de baja tensión (0 si el alimentador atiende en MT).
+    Valores ilustrativos: se sustituyen por los del estudio de la red real."""
+    clave: str              # A1 | A2
+    nombre: str             # como aparece en Carga.alimentador
+    nivel: str              # nivel de las cargas que atiende: MT | BT
+    capacidad_kw: float
+    transformador_bt_kw: float = 0.0
+
+
+@dataclass
 class RedDistribucion:
     subestacion: str
     tension_mt_kv: float
@@ -58,6 +73,24 @@ class RedDistribucion:
     capacidad_convencional_kw: float    # límite del transformador de la subestación
     cargas: list[Carga] = field(default_factory=list)
     renovables: list[FuenteRenovable] = field(default_factory=list)
+    alimentadores: list[Alimentador] = field(default_factory=list)
+    perdidas_mt_pct: float = 2.5        # pérdidas técnicas aproximadas en la red de MT
+    perdidas_bt_pct: float = 4.0        # pérdidas adicionales en transformadores y red de BT
+    limite_inyeccion_kw: float = 800.0  # excedente renovable que puede subir a la subestación
+
+    def alimentador(self, nombre_o_clave: str) -> Alimentador:
+        for a in self.alimentadores:
+            if nombre_o_clave in (a.clave, a.nombre):
+                return a
+        raise KeyError(f"Alimentador desconocido: {nombre_o_clave}")
+
+    def cargas_de(self, clave: str) -> list[Carga]:
+        nombre = self.alimentador(clave).nombre
+        return [c for c in self.cargas if c.alimentador == nombre]
+
+    def renovables_de(self, clave: str) -> list[FuenteRenovable]:
+        nombre = self.alimentador(clave).nombre
+        return [r for r in self.renovables if r.alimentador == nombre]
 
     # Tarifa horaria (estructura base / intermedia / punta, ilustrativa)
     TARIFAS = {"base": 1.10, "intermedia": 1.80, "punta": 3.20}
@@ -78,7 +111,10 @@ class RedDistribucion:
 
 
 def red_ejemplo() -> RedDistribucion:
-    """Red de distribución de ejemplo: 1 subestación, 2 alimentadores de MT."""
+    """Red de distribución de ejemplo: 1 subestación, 2 alimentadores de MT.
+
+    Capacidades de alimentadores y transformadores de BT, pérdidas y límite de
+    inyección son ILUSTRATIVOS (orden de magnitud razonable para 13.2 kV)."""
     red = RedDistribucion(subestacion="Subestación Reductora SE-01",
                           tension_mt_kv=13.2, tension_bt="127/220 V",
                           capacidad_convencional_kw=4_750)   # 5 MVA, fp 0.95
@@ -93,6 +129,10 @@ def red_ejemplo() -> RedDistribucion:
     red.renovables = [
         FuenteRenovable("Solar distribuida (techos y estacionamientos)", "solar", 1_200, "Alimentador 2"),
         FuenteRenovable("Mini-eólica parque industrial", "eolica", 600, "Alimentador 1"),
+    ]
+    red.alimentadores = [
+        Alimentador("A1", "Alimentador 1", "MT", capacidad_kw=2_800),
+        Alimentador("A2", "Alimentador 2", "BT", capacidad_kw=3_600, transformador_bt_kw=3_400),
     ]
     return red
 

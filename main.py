@@ -5,7 +5,9 @@ Ejemplos:
     python main.py                                  # 1 mes, interactivo
     python main.py --periodo 1a --modo auto         # 1 año, aprobación automática
     python main.py --condicion ola_calor --modo auto
-    python main.py --condicion falla --modo auto --mostrar
+    python main.py --condicion falla_transformador --modo auto --mostrar
+    python main.py --condicion falla_alimentador --alimentador A2 --modo auto
+    python main.py --condicion crecimiento_demanda --crecimiento 25 --modo auto
     python main.py --modo auto --rechazos 2         # demuestra el ciclo de rechazo
     python main.py --modo auto --falla aprendizaje  # demuestra el manejo de fallas
 
@@ -17,7 +19,7 @@ import os
 
 import numpy as np
 
-from agentes import CONDICIONES
+from condiciones import ALIMENTADORES_FALLA, CONDICIONES, resolver
 from modelo_red import PERIODOS
 from motor import FALLAS, crear_sistema
 
@@ -39,6 +41,10 @@ def graficar(reporte, escenarios, red, ruta, mostrar):
         p = red.periodo_tarifario(hora)
         color = {"base": "#E1F5EE", "intermedia": "#FAEEDA", "punta": "#FCEBEB"}[p]
         ax.axvspan(hora - 0.5, hora + 0.5, color=color, lw=0)
+    ctx = escenarios.get("contexto")
+    if ctx is not None:
+        p10, p90 = sum(ctx.cargas_p10.values()), sum(ctx.cargas_p90.values())
+        ax.fill_between(h, p10, p90, color="#5F5E5A", alpha=.15, lw=0, label="Banda de demanda P10-P90")
     if base is not None:
         ax.plot(h, base.demanda, color="#5F5E5A", lw=2, label="Demanda pronosticada (sin cambios)")
     ax.fill_between(h, 0, base.renovable if base is not None else 0, color="#97C459", alpha=.6,
@@ -48,7 +54,7 @@ def graficar(reporte, escenarios, red, ruta, mostrar):
                 label=f"Demanda con recomendación {elegido.id}")
         if elegido.suspensiones:
             hs = sorted({s[0] for s in elegido.suspensiones})
-            ax.scatter(hs, elegido.demanda[hs], color="#A32D2D", zorder=5, label="Suspensión controlada")
+            ax.scatter(hs, elegido.demanda[hs], color="#A32D2D", zorder=5, label="Recorte parcial")
     cap = escenarios["capacidad_kw"]
     renov = base.renovable if base is not None else 0
     ax.plot(h, cap + renov, color="#A32D2D", lw=1, ls=":", label="Límite de suministro (capacidad + renovable)")
@@ -69,7 +75,12 @@ def graficar(reporte, escenarios, red, ruta, mostrar):
 def main():
     ap = argparse.ArgumentParser(description="Prototipo ElectriAgent")
     ap.add_argument("--periodo", choices=PERIODOS, default="1m")
-    ap.add_argument("--condicion", choices=CONDICIONES, default="normal")
+    ap.add_argument("--condicion", choices=CONDICIONES, default="normal",
+                    help="condición prevista de la red (catálogo de escenarios de demanda)")
+    ap.add_argument("--alimentador", choices=ALIMENTADORES_FALLA, default=None,
+                    help="alimentador en falla para --condicion falla_alimentador (por omisión A1)")
+    ap.add_argument("--crecimiento", type=float, default=None,
+                    help="porcentaje para --condicion crecimiento_demanda (por omisión 15)")
     ap.add_argument("--modo", choices=["interactivo", "auto"], default="interactivo",
                     help="aprobación humana por consola o automática (demostración)")
     ap.add_argument("--rechazos", type=int, default=0, help="rechazos automáticos antes de aprobar")
@@ -82,12 +93,13 @@ def main():
 
     s = crear_sistema(periodo=args.periodo, condicion=args.condicion, modo=args.modo,
                       rechazos=args.rechazos, falla=args.falla, semilla=args.semilla,
-                      salida=args.salida)
+                      salida=args.salida, alimentador=args.alimentador, crecimiento_pct=args.crecimiento)
     red, bus, pizarra = s.red, s.bus, s.pizarra
 
     print("=" * 70)
     print(f"  ELECTRIAGENT | {red.subestacion} ({red.tension_mt_kv} kV MT / {red.tension_bt} BT)")
-    print(f"  Día a recomendar: {s.fin:%Y-%m-%d} | Condición: {CONDICIONES[args.condicion]['desc']}")
+    print(f"  Día a recomendar: {s.fin:%Y-%m-%d} | Condición: "
+          f"{resolver(args.condicion, **s.parametros)['desc']}")
     print("=" * 70)
     s.iniciar()
 
@@ -102,12 +114,21 @@ def main():
         m = r["metricas"]
         print(f"  Costo {m['costo_mxn']:,.0f} MXN | Renovables {m['renovable_pct']} % | "
               f"Margen mínimo {m['margen_min_pct']} % | Déficit {m['deficit_kwh']} kWh")
+        print(f"  Recorte parcial {m['recorte_kwh']:,.0f} kWh | Pérdidas {m['perdidas_kwh']:,.0f} kWh | "
+              f"{'Robusta' if r['robusto'] else 'No robusta'} ante P90 (déficit P90 {m['deficit_p90_kwh']} kWh)")
+        for k, a in m["alimentadores"].items():
+            print(f"    {k}: demanda {a['demanda_kwh']:,.0f} kWh | renovable {a['renovable_usada_kwh']:,.0f} | "
+                  f"convencional {a['convencional_kwh']:,.0f} | recorte {a['recorte_kwh']:,.0f} | "
+                  f"margen {a['margen_min_pct']} %")
     else:
         for j in rep["motivo_escalamiento"]:
             print(f"   > {j}")
     t = rep["trazabilidad_iso_5338"]
-    if t and t["alerta_deriva"]:
+    if t and (t["alerta_deriva"] or t.get("alerta_calibracion_bandas")):
         print(f"  ALERTA ISO/IEC 5338: {t['accion_monitoreo']}")
+    if t and t.get("cobertura_bandas_pct") is not None:
+        print(f"  Cobertura de bandas P10-P90 (ISO/IEC 5338): {t['cobertura_bandas_pct']} % "
+              f"de {t['lecturas_validacion_bandas']} lecturas (nominal {t['cobertura_nominal_pct']:g} %)")
     print("-" * 70)
     print(f"  Coordinación: {bus.enviados} mensajes | recorrido {' '.join(bus.recorrido)}")
     print(f"  Costo de coordinación (pesos del grafo): {bus.costo_total}")

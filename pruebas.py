@@ -75,7 +75,7 @@ def prueba_flujos():
     print("OK  tras 3 rechazos el supervisor escala al operador")
     s = _ejecutar("--condicion", "falla")
     assert "contingencia" in s and "Hospital General" not in s.split("RESULTADO")[1]
-    print("OK  contingencia: suspensiones controladas sin tocar la carga crítica")
+    print("OK  contingencia: recorte parcial controlado sin tocar la carga crítica")
     s = _ejecutar("--condicion", "ola_calor")
     assert "Déficit 0.0 kWh" in s
     print("OK  ola de calor: el desplazamiento elimina el déficit de la operación actual")
@@ -142,10 +142,186 @@ def prueba_api():
         srv.server_close()
 
 
+# ------------------------------------------------ distribución y escenarios
+TOL = 0.1   # kW
+
+
+def _catalogo():
+    from condiciones import ALIMENTADORES_FALLA, CONDICIONES
+    lista = []
+    for c, v in CONDICIONES.items():
+        if "alias_de" in v:
+            continue
+        lista += [(c, a) for a in ALIMENTADORES_FALLA] if c == "falla_alimentador" else [(c, None)]
+    return lista
+
+
+_CACHE: dict = {}
+
+
+def _sistema(condicion, alimentador=None, periodo="1m"):
+    """Ejecuta el flujo completo en modo auto (en proceso) y lo guarda para reutilizarlo."""
+    import tempfile
+    from motor import crear_sistema
+    clave = (condicion, alimentador, periodo)
+    if clave not in _CACHE:
+        s = crear_sistema(periodo=periodo, condicion=condicion, alimentador=alimentador, modo="auto",
+                          verbose=False, salida=tempfile.mkdtemp(prefix="electriagent_"))
+        with contextlib.redirect_stdout(io.StringIO()):
+            s.iniciar()
+        assert s.terminado, f"{clave}: el flujo no terminó"
+        _CACHE[clave] = s
+    return _CACHE[clave]
+
+
+def _recomendado(s):
+    dec = s.pizarra.leer("decision")
+    return next(e for e in s.pizarra.leer("escenarios")["lista"] if e.id == dec["escenario"])
+
+
+def prueba_balance():
+    """Criterio 1: demanda = renovable usada + convencional + recorte (+ no servido) por hora y alimentador."""
+    for cond, alim in _catalogo():
+        s = _sistema(cond, alim)
+        for esc in s.pizarra.leer("escenarios")["lista"]:
+            for d in (esc.distribucion, esc.distribucion_p90):
+                for k in d.claves:
+                    resto = d.demanda[k] - (d.renovable_usada[k] + d.convencional[k] + d.recorte[k] + d.no_servido[k])
+                    assert abs(resto).max() <= TOL, (cond, alim, esc.id, k, abs(resto).max())
+        d = _recomendado(s).distribucion
+        for k in d.claves:
+            assert d.no_servido[k].max() <= TOL, (cond, alim, k)
+            resto = d.demanda[k] - (d.renovable_usada[k] + d.convencional[k] + d.recorte[k])
+            assert abs(resto).max() <= TOL, (cond, alim, k, abs(resto).max())
+    print("OK  balance por hora y alimentador: demanda = renovable + convencional + recorte (±0.1 kW)")
+
+
+def prueba_capacidades():
+    """Criterio 2: el escenario recomendado no supera ningún alimentador, transformador BT ni la subestación."""
+    for cond, alim in _catalogo():
+        s = _sistema(cond, alim)
+        d = _recomendado(s).distribucion
+        lim = d.limites
+        assert d.importacion_subestacion.max() <= lim.subestacion_kw + TOL, (cond, alim)
+        for k in d.claves:
+            assert d.flujo_cabecera[k].max() <= lim.alimentador_kw[k] + TOL, (cond, alim, k)
+            if lim.transformador_bt_kw[k] != float("inf"):
+                assert d.flujo_trafo_bt[k].max() <= lim.transformador_bt_kw[k] + TOL, (cond, alim, k)
+    print("OK  ningún alimentador, transformador BT o de subestación se excede en lo recomendado")
+
+
+def prueba_falla_alimentador_hospital():
+    """Criterio 3: con falla del A1 el hospital conserva el 100 % de su suministro."""
+    s = _sistema("falla_alimentador", "A1")
+    esc = _recomendado(s)
+    assert esc.estrategia == "contingencia" and esc.metricas["recorte_kwh"] > 0
+    for d in (esc.distribucion, esc.distribucion_p90):
+        assert "Hospital General" not in d.recorte_por_carga
+        assert "Hospital General" not in d.no_servido_por_carga
+    assert "critica" not in esc.metricas["recorte_por_tipo_kwh"]
+    assert esc.metricas["alimentadores"]["A1"]["no_servido_kwh"] == 0
+    rep = s.salida.reporte
+    assert "Hospital General" not in str(rep["recomendacion"]["acciones"])
+    print("OK  falla del alimentador A1: el hospital conserva el 100 % de su suministro")
+
+
+def prueba_recorte_parcial():
+    """Criterio 4: lo recortado nunca supera el déficit (de la banda planificada) más 5 %."""
+    revisados = 0
+    for cond, alim in _catalogo():
+        for esc in _sistema(cond, alim).pizarra.leer("escenarios")["lista"]:
+            m = esc.metricas
+            assert m["recorte_kwh"] <= m["deficit_planificado_kwh"] * 1.05 + TOL, (cond, alim, esc.id)
+            if esc.estrategia == "contingencia" and esc.base_planificacion == "P50":
+                d = esc.distribucion
+                assert m["recorte_kwh"] <= m["deficit_previo_kwh"] * 1.05 + TOL, (cond, alim, esc.id)
+                for k in d.claves:   # también hora por hora
+                    assert (d.recorte[k] <= d.deficit[k] * 1.05 + TOL).all(), (cond, alim, esc.id, k)
+                revisados += 1
+    assert revisados >= 4
+    print("OK  recorte parcial: la energía recortada nunca supera el déficit + 5 %")
+
+
+def prueba_baja_renovable():
+    """Criterio 5: baja la cobertura renovable y la regla 1 se cumple (sin déficit o con contingencia)."""
+    normal, baja = _recomendado(_sistema("normal")), _recomendado(_sistema("baja_renovable"))
+    assert baja.metricas["renovable_pct"] < normal.metricas["renovable_pct"]
+    dec = _sistema("baja_renovable").pizarra.leer("decision")
+    assert baja.metricas["deficit_kwh"] == 0 or dec["modo"] == "contingencia"
+    print(f"OK  baja renovable: cobertura {normal.metricas['renovable_pct']} % -> "
+          f"{baja.metricas['renovable_pct']} % y la regla 1 se cumple")
+
+
+def prueba_bandas():
+    """Criterio 6: P10 <= P50 <= P90 y la cobertura medida queda en la evaluación ISO/IEC 5338."""
+    for periodo in ("1d", "1m"):
+        s = _sistema("normal", periodo=periodo)
+        a = s.pizarra.leer("analisis")
+        for grupo in ("bandas_cargas", "bandas_renovables"):
+            for nombre, b in a[grupo].items():
+                assert (b["p10"] <= b["p50"] + 1e-9).all() and (b["p50"] <= b["p90"] + 1e-9).all(), (periodo, nombre)
+        t = s.pizarra.leer("evaluacion")["trazabilidad"]
+        assert "cobertura_bandas_pct" in t and "alerta_calibracion_bandas" in t
+        if periodo == "1m":
+            assert 0 <= t["cobertura_bandas_pct"] <= 100 and t["lecturas_validacion_bandas"] > 0
+        else:
+            assert t["cobertura_bandas_pct"] is None      # con 1 día no hay validación fuera de muestra
+    for esc in _sistema("normal").pizarra.leer("escenarios")["lista"]:
+        assert esc.metricas_p90["demanda_kwh"] >= esc.metricas["demanda_kwh"] - TOL
+    print(f"OK  bandas P10 <= P50 <= P90; cobertura registrada en ISO/IEC 5338 ({t['cobertura_bandas_pct']} % con 1 mes)")
+
+
+def prueba_catalogo():
+    """Criterio 7: cada condición termina A->H sin error en modo auto (consola) y en la API."""
+    import json
+    import threading
+    import urllib.request
+    import servidor
+
+    for cond, alim in _catalogo():
+        extra = ["--alimentador", alim] if alim else []
+        s = _ejecutar("--condicion", cond, *extra)
+        assert "RESULTADO: APROBADA" in s and _costo(s) == 36, (cond, alim)
+    print(f"OK  catálogo: las {len(_catalogo())} condiciones completan A->H en modo auto (costo 36)")
+
+    srv = servidor.crear_servidor("127.0.0.1", 0, silencioso=True)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}/api"
+
+    def post(ruta, cuerpo):
+        req = urllib.request.Request(base + ruta, method="POST", data=json.dumps(cuerpo).encode(),
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req) as r:
+            return r.status, json.loads(r.read())
+    try:
+        for cond, alim in _catalogo():
+            cuerpo = {"condicion": cond, **({"alimentador": alim} if alim else {})}
+            st, v = post("/sesiones", cuerpo)
+            assert st == 201 and v["estado"] == "en_espera", (cond, alim, v.get("estado"))
+            p = v["propuesta"]
+            assert set(p["serie"]["por_alimentador"]) == {"SE", "A1", "A2"} and "bandas" in p["serie"]
+            assert isinstance(p["robusto"], bool) and "alimentadores" in p
+            st, v = post(f"/sesiones/{v['id']}/aprobacion", {"aprobado": True})
+            assert st == 200 and v["estado"] == "aprobada" and v["coordinacion"]["costo"] == 36, (cond, alim)
+        st, v = post("/sesiones", {"condicion": "crecimiento_demanda", "crecimiento_pct": 30})
+        assert st == 201 and v["condicion"]["parametros"]["crecimiento_pct"] == 30
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    print("OK  catálogo en la API: propuesta por alimentador con bandas, aprobación y costo 36")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
         prueba_pizarra()
         prueba_flujos()
         prueba_api()
+        prueba_balance()
+        prueba_capacidades()
+        prueba_falla_alimentador_hospital()
+        prueba_recorte_parcial()
+        prueba_baja_renovable()
+        prueba_bandas()
+        prueba_catalogo()
     print("\nTodas las pruebas pasaron.")
