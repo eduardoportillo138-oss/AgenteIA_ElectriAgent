@@ -36,6 +36,7 @@ class Sistema:
     dir_salida: str
     fin: datetime
     parametros: dict = field(default_factory=dict)   # parámetros de la condición (alimentador, crecimiento)
+    creada: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     conversacion: str = field(default_factory=lambda: uuid.uuid4().hex[:8])
 
     def iniciar(self):
@@ -44,9 +45,9 @@ class Sistema:
         self.usuario.iniciar(self.periodo, self.conversacion)
         self.bus.ejecutar()
 
-    def responder(self, aprobado: bool, motivo: str = ""):
+    def responder(self, aprobado: bool, motivo: str = "", operador: str = ""):
         """Decisión del operador (modo web): reanuda el flujo."""
-        self.aprobacion.responder(aprobado, motivo)
+        self.aprobacion.responder(aprobado, motivo, operador)
         self.bus.ejecutar()
 
     @property

@@ -876,25 +876,30 @@ class AprobacionHumana(Agente):
         self.pendiente: dict | None = None      # propuesta que espera decisión (modo web)
         self.historial: list[dict] = []         # decisiones del operador
 
-    def responder(self, aprobado: bool, motivo: str = ""):
+    def responder(self, aprobado: bool, motivo: str = "", operador: str = ""):
         """Registra la decisión del operador sobre la propuesta pendiente (modo web).
+        `operador` es el nombre de quien firma (único dato personal que se guarda).
         Después hay que llamar a bus.ejecutar() para que el flujo continúe."""
         if self.pendiente is None:
             raise ValueError("No hay ninguna propuesta en espera de aprobación")
         p, self.pendiente = self.pendiente, None
-        self._registrar(p["escenario"], aprobado, motivo.strip(), p["conversacion"])
+        self._registrar(p["escenario"], aprobado, motivo.strip(), p["conversacion"], operador.strip())
 
-    def _registrar(self, escenario: str, aprobado: bool, motivo: str, conv: str):
+    def _registrar(self, escenario: str, aprobado: bool, motivo: str, conv: str, operador: str = ""):
         registro = {"aprobado": aprobado, "escenario": escenario, "motivo": motivo,
+                    "operador": operador or None,
                     "fecha": datetime.now().isoformat(timespec="seconds")}
         self.historial.append(registro)
         self.pizarra.escribir("G", "aprobacion", registro)
+        # ISO/IEC 5338: la decisión humana queda en la bitácora con quien la firma
+        self.pizarra.bitacora.registrar("decision_humana", conversacion=conv, **registro)
         self.log(f"{'APROBADA' if aprobado else 'RECHAZADA'} la propuesta {escenario}"
+                 + (f" por {operador}" if operador else "")
                  + (f" (motivo: {motivo})" if motivo else ""))
         if aprobado:
-            self.enviar("H", P.INFORM, {"clave": "decision", "aprobado": True}, conv)
+            self.enviar("H", P.INFORM, {"clave": "decision", "aprobado": True, "operador": operador}, conv)
         else:
-            self.enviar("C", P.REJECT, {"escenario": escenario, "motivo": motivo}, conv)
+            self.enviar("C", P.REJECT, {"escenario": escenario, "motivo": motivo, "operador": operador}, conv)
 
     def procesar(self, msg: Mensaje):
         decision = self.pizarra.leer("decision")
