@@ -7,13 +7,19 @@ Solo usa la biblioteca estándar de Python (más numpy, que ya usa el motor).
     python servidor.py --host 0.0.0.0       # para abrirlo desde el celular en la misma red Wi-Fi
 
 API
+    GET  /api/salud                         {estado, version_api, version_modelo}
     GET  /api/config                        periodos, condiciones, grafo y red
+    GET  /api/sesiones                      sesiones en memoria (resumen)
     POST /api/sesiones                      {periodo, condicion, alimentador?, crecimiento_pct?,
                                              falla?, semilla?} -> crea y analiza
     GET  /api/sesiones/<id>                 estado de la sesión
-    POST /api/sesiones/<id>/aprobacion      {aprobado: bool, motivo?: str} -> decisión del operador
+    POST /api/sesiones/<id>/aprobacion      {aprobado: bool, motivo?: str, operador?: str} -> decisión
     GET  /api/sesiones/<id>/reporte         reporte final (JSON descargable)
     GET  /api/sesiones/<id>/bitacora        bitácora de trazabilidad (ISO/IEC 5338)
+
+Seguridad
+    ELECTRIAGENT_TOKEN   si existe, toda ruta /api exige "Authorization: Bearer <token>" (401 si no)
+    ELECTRIAGENT_CORS    orígenes permitidos separados por coma (por omisión, Expo Web en localhost)
 
 El sistema es informativo: no controla dispositivos ni la red. Toda
 recomendación queda en espera hasta que una persona la aprueba o la rechaza.
@@ -21,6 +27,7 @@ recomendación queda en espera hasta que una persona la aprueba o la rechaza.
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import mimetypes
 import os
@@ -45,6 +52,10 @@ DIR_WEB = os.path.join(AQUI, "web")
 DIR_SALIDA = os.path.join(AQUI, "salida", "web")
 MAX_SESIONES = 100
 MAX_MOTIVO = 500
+MAX_OPERADOR = 80
+VERSION_API = "1.1"
+CORS_POR_OMISION = ("http://localhost:8081", "http://127.0.0.1:8081",
+                    "http://localhost:19006", "http://127.0.0.1:19006")
 
 # El motor escribe la memoria de aprendizaje compartida: una ejecución a la vez.
 _motor_lock = threading.Lock()
@@ -263,12 +274,33 @@ def obtener(sid: str) -> Sistema:
     return s
 
 
+def salud() -> dict:
+    return {"estado": "ok", "version_api": VERSION_API, "version_modelo": VERSION_MODELO}
+
+
+def listar_sesiones() -> list[dict]:
+    """Resumen de las sesiones en memoria, de la más reciente a la más antigua."""
+    with _sesiones_lock:
+        items = list(_sesiones.items())
+    out = []
+    for sid, s in reversed(items):
+        v = vista(sid, s)
+        out.append({"id": sid, "fecha": s.creada, "periodo": v["periodo"], "condicion":
+                    {"id": v["condicion"]["id"], "nombre": v["condicion"]["nombre"]},
+                    "estado": v["estado"],
+                    "escenario": v["propuesta"]["escenario"] if v["propuesta"] else None})
+    return out
+
+
 def responder(sid: str, datos: dict) -> Sistema:
     s = obtener(sid)
     aprobado = datos.get("aprobado")
     motivo = datos.get("motivo", "") or ""
+    operador = datos.get("operador", "") or ""
     if not isinstance(aprobado, bool):
         raise ErrorAPI(HTTPStatus.BAD_REQUEST, "Indica 'aprobado': true o false")
+    if not isinstance(operador, str) or len(operador.strip()) > MAX_OPERADOR:
+        raise ErrorAPI(HTTPStatus.BAD_REQUEST, f"El nombre del operador debe ser texto de hasta {MAX_OPERADOR} caracteres")
     if not isinstance(motivo, str) or len(motivo) > MAX_MOTIVO:
         raise ErrorAPI(HTTPStatus.BAD_REQUEST, f"El motivo debe ser texto de hasta {MAX_MOTIVO} caracteres")
     if not aprobado and not motivo.strip():
@@ -276,7 +308,7 @@ def responder(sid: str, datos: dict) -> Sistema:
     with _motor_lock:
         if not s.en_espera:
             raise ErrorAPI(HTTPStatus.CONFLICT, "Esta sesión no tiene una propuesta en espera")
-        s.responder(aprobado, motivo)
+        s.responder(aprobado, motivo, operador)
         if s.terminado:
             s.guardar_bitacora()
     return s
@@ -300,10 +332,31 @@ class Manejador(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(datos)))
         self.send_header("Cache-Control", "no-store")
+        self._cors()
         if descarga:
             self.send_header("Content-Disposition", f'attachment; filename="{descarga}"')
         self.end_headers()
         self.wfile.write(datos)
+
+    def _cors(self):
+        """CORS restringido: solo los orígenes permitidos (Expo Web en desarrollo).
+        Las apps nativas no envían Origin y no lo necesitan."""
+        origen = self.headers.get("Origin")
+        if origen and origen in getattr(self.server, "origenes", ()):
+            self.send_header("Access-Control-Allow-Origin", origen)
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+            self.send_header("Access-Control-Expose-Headers", "Content-Disposition")
+            self.send_header("Access-Control-Max-Age", "600")
+        self.send_header("Vary", "Origin")
+
+    def _autorizado(self) -> bool:
+        token = getattr(self.server, "token", None)
+        if not token:
+            return True
+        cabecera = self.headers.get("Authorization", "")
+        enviado = cabecera[7:] if cabecera.startswith("Bearer ") else ""
+        return hmac.compare_digest(enviado.encode(), token.encode())
 
     def _leer_json(self) -> dict:
         largo = int(self.headers.get("Content-Length") or 0)
@@ -323,6 +376,9 @@ class Manejador(BaseHTTPRequestHandler):
         ruta = urlparse(self.path).path
         try:
             if ruta.startswith("/api/"):
+                if not self._autorizado():
+                    raise ErrorAPI(HTTPStatus.UNAUTHORIZED, "Falta el token de acceso o es incorrecto. "
+                                                            "Revisa el token en los ajustes de la app.")
                 return self._api(metodo, ruta)
             if metodo != "GET":
                 raise ErrorAPI(HTTPStatus.METHOD_NOT_ALLOWED, "Método no permitido")
@@ -338,10 +394,20 @@ class Manejador(BaseHTTPRequestHandler):
     def do_POST(self):
         self._despachar("POST")
 
+    def do_OPTIONS(self):   # verificación previa de CORS (no exige token)
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self._cors()
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     # -- API
     def _api(self, metodo: str, ruta: str):
+        if ruta == "/api/salud" and metodo == "GET":
+            return self._json(HTTPStatus.OK, salud())
         if ruta == "/api/config" and metodo == "GET":
             return self._json(HTTPStatus.OK, configuracion())
+        if ruta == "/api/sesiones" and metodo == "GET":
+            return self._json(HTTPStatus.OK, {"sesiones": listar_sesiones()})
         if ruta == "/api/sesiones" and metodo == "POST":
             sid, s = crear_sesion(self._leer_json())
             return self._json(HTTPStatus.CREATED, vista(sid, s))
@@ -384,10 +450,17 @@ class Manejador(BaseHTTPRequestHandler):
         self.wfile.write(datos)
 
 
-def crear_servidor(host: str = "127.0.0.1", puerto: int = 8000, silencioso: bool = False) -> ThreadingHTTPServer:
+def crear_servidor(host: str = "127.0.0.1", puerto: int = 8000, silencioso: bool = False,
+                   token: str | None = None, origenes: tuple[str, ...] | None = None) -> ThreadingHTTPServer:
+    """token/origenes: si no se indican, se leen de ELECTRIAGENT_TOKEN y ELECTRIAGENT_CORS."""
     os.makedirs(DIR_SALIDA, exist_ok=True)
     srv = ThreadingHTTPServer((host, puerto), Manejador)
     srv.silencioso = silencioso
+    srv.token = token if token is not None else (os.environ.get("ELECTRIAGENT_TOKEN") or None)
+    if origenes is None:
+        env = os.environ.get("ELECTRIAGENT_CORS")
+        origenes = tuple(o.strip() for o in env.split(",") if o.strip()) if env else CORS_POR_OMISION
+    srv.origenes = origenes
     return srv
 
 
@@ -398,6 +471,7 @@ def main():
     args = ap.parse_args()
     srv = crear_servidor(args.host, args.puerto)
     print(f"ElectriAgent en http://{'localhost' if args.host in ('127.0.0.1', '0.0.0.0') else args.host}:{args.puerto}")
+    print("API protegida con token (ELECTRIAGENT_TOKEN)." if srv.token else "API sin token (red de confianza).")
     print("Ctrl+C para detener.")
     try:
         srv.serve_forever()

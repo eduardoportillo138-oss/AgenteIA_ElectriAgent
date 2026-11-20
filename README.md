@@ -28,20 +28,111 @@ Es una **PWA**: en el celular se puede instalar desde el navegador ("Agregar a p
 
 | Método | Ruta | Uso |
 |---|---|---|
+| GET | `/api/salud` | `{estado, version_api, version_modelo}`: la app lo usa para probar la conexión |
 | GET | `/api/config` | Periodos, catálogo de condiciones (con descripción y parámetros), grafo y modelo de la red con alimentadores |
+| GET | `/api/sesiones` | Sesiones en memoria, la más reciente primero: `id`, `fecha`, `periodo`, `condicion`, `estado`, `escenario` |
 | POST | `/api/sesiones` | `{periodo, condicion, alimentador?, crecimiento_pct?, falla?, semilla?}`: analiza y deja la propuesta en espera |
 | GET | `/api/sesiones/<id>` | Estado de la sesión |
-| POST | `/api/sesiones/<id>/aprobacion` | `{aprobado, motivo}`: decisión del operador (el rechazo exige motivo) |
+| POST | `/api/sesiones/<id>/aprobacion` | `{aprobado, motivo, operador?}`: decisión del operador (el rechazo exige motivo; `operador`, hasta 80 caracteres, firma la decisión). Una segunda decisión devuelve 409 |
 | GET | `/api/sesiones/<id>/reporte` | Reporte final (cuando ya se decidió) |
 | GET | `/api/sesiones/<id>/bitacora` | Bitácora de trazabilidad |
 
-Estados de una sesión: `en_espera`, `aprobada`, `escalada`. La API está pensada para que una app nativa (Flutter, React Native) la consuma sin cambios.
+Estados de una sesión: `en_espera`, `aprobada`, `escalada`. La API está pensada para que una app nativa la consuma sin cambios.
+
+**Seguridad (opcional, retrocompatible):**
+- `ELECTRIAGENT_TOKEN`: si existe, toda ruta `/api` exige `Authorization: Bearer <token>` (401 si falta o es incorrecto). Si no existe, la API funciona como antes.
+- `ELECTRIAGENT_CORS`: orígenes permitidos para CORS, separados por coma. Por omisión solo Expo Web en `localhost`/`127.0.0.1` (puertos 8081 y 19006). Las apps nativas no necesitan CORS.
+- El nombre del operador queda en el historial, en la pizarra (`aprobacion`), en el reporte y como evento `decision_humana` en la bitácora (ISO/IEC 5338).
+
+```powershell
+$env:ELECTRIAGENT_TOKEN = "un-token-largo"; python servidor.py --host 0.0.0.0
+```
 
 Campos nuevos (los anteriores se conservan igual):
 - `propuesta.robusto`, `propuesta.metricas_p90`, `propuesta.base_planificacion` (`P50` o `P90`), `propuesta.recorte_por_carga` y `propuesta.alimentadores` (totales y uso por alimentador).
 - `propuesta.serie.bandas` (P10/P90 de demanda y renovables) y `propuesta.serie.por_alimentador` con las series de `SE`, `A1` y `A2`.
 - `alternativas[].recorte_kwh`, `robusto`, `deficit_p90_kwh` y `utilizacion_max_pct`.
 - `condicion.descripcion` y `condicion.parametros`; `analisis.cobertura_bandas`; en `trazabilidad`, la cobertura de las bandas.
+
+## App móvil
+
+App nativa para Android e iOS en `mobile/` (React Native + Expo SDK 58, TypeScript estricto, expo-router). Consume la misma API REST; no reimplementa el motor.
+
+Como toda la plataforma, es **informativa**: no tiene ningún control de equipos. La acción principal es **aprobar o rechazar** la propuesta. Ambas piden confirmación, se firman con el nombre del operador y dan retroalimentación háptica. El rechazo exige motivo.
+
+### Requisitos
+- Node.js LTS (probado con Node 24) y npm.
+- En el celular, **Expo Go** (Play Store / App Store). Celular y PC en la misma red Wi-Fi.
+- El servidor de ElectriAgent en la PC: `python servidor.py --host 0.0.0.0`.
+
+### Ejecución
+
+```powershell
+cd mobile
+npm install
+npx expo start          # escanea el código QR con Expo Go
+```
+
+En la primera apertura, la app pide en **Ajustes**:
+- **URL del servidor**: la IP de la PC en la red local, por ejemplo `http://192.168.1.20:8000`. En Windows se consulta con `ipconfig` ("Dirección IPv4").
+- **Token** (opcional): el mismo valor de `ELECTRIAGENT_TOKEN`, si el servidor lo usa.
+- **Tu nombre**: firma cada decisión. Es el único dato personal que guarda la app.
+
+"Probar conexión" llama a `/api/salud`. La URL y el token se guardan cifrados con `expo-secure-store`.
+
+Para probar en el navegador (Expo Web): `npx expo start --web`. El servidor ya permite CORS desde `http://localhost:8081`.
+
+### Pantallas
+
+| Pantalla | Contenido |
+|---|---|
+| Analizar | Periodo (1 día a 1 año), condición de la red del catálogo de `/api/config` (con alimentador o porcentaje si aplica) y "Analizar consumo" |
+| Recorrido | Grafo A–H con la disposición vertical de la web. Las aristas se iluminan en orden con su peso y se muestra el costo de coordinación. G pulsa en amarillo mientras espera la decisión. Respeta "reducir movimiento" |
+| Propuesta | Acciones, cifras frente a la operación actual, justificación de las reglas 1–4, aviso de contingencia, recorte parcial por carga, detalle por alimentador y robustez P90. Barra fija con "Aprobar recomendación" y "Rechazar y pedir alternativa" |
+| Detalle | Gráfica de 24 h (tarifas, renovables, límite, banda P10–P90 y selector Subestación/A1/A2), consumo por carga, anomalías, ISO 23894/42005/5338, escenarios y bitácora |
+| Historial | Sesiones de `/api/sesiones` y copias locales. Si una sesión expiró en el servidor (404), abre la copia local en solo lectura |
+| Resultado | Estado aprobada o escalada, quién firmó, y compartir el reporte y la bitácora en JSON |
+| Ajustes | Servidor, token, operador y borrado de las copias locales |
+
+Capturas (Expo Web, 375 × 812) en `docs/capturas/movil/`: Analizar, Recorrido, Propuesta en espera, Resultado y Detalle con falla del A1.
+
+### Comportamiento
+- **Sin conexión** se puede consultar la última sesión guardada (copias de las 10 más recientes en AsyncStorage). Aprobar y rechazar quedan deshabilitados con el texto "Necesitas conexión con el servidor para decidir". Las decisiones **nunca** se encolan para enviarlas después, y una decisión (POST) nunca se reintenta. Solo las lecturas (GET) se reintentan.
+- **Errores**: se muestra el mensaje del servidor (campo `error`) y qué hacer (revisar el token, la red, la URL...).
+- **409**: si la sesión ya se había decidido (por ejemplo, desde la web), la app la recarga y lo avisa.
+
+### Calidad
+
+```powershell
+cd mobile
+npm test                 # Jest + Testing Library: cliente de API, formato, propuesta y barra de decisión
+npx tsc --noEmit         # TypeScript estricto
+npx expo lint            # ESLint (configuración plana de Expo)
+```
+
+El contrato entre la API y la app está cubierto por los dos lados. `prueba_api_movil` en `pruebas.py` verifica las claves de la vista. Las pruebas de Jest tipan respuestas reales del servidor (`mobile/__tests__/fixtures/`) como `Vista`.
+
+### Prueba manual en un celular
+1. En la PC: `python servidor.py --host 0.0.0.0` (y abre el puerto 8000 en el firewall de Windows si lo pide).
+2. En `mobile/`: `npx expo start` y escanea el QR con Expo Go. En Ajustes escribe la URL y tu nombre, y pulsa "Probar conexión".
+3. Para cada condición (**normal**, **ola_calor** y **falla**, alias de `falla_transformador`): analiza, revisa el recorrido, **rechaza** con un motivo, comprueba que llega una alternativa menos invasiva, **aprueba** y comparte el reporte desde Resultado.
+4. Activa el modo avión con una propuesta en espera: debe verse la copia, con los botones deshabilitados y el aviso de conexión.
+
+### APK de Android (EAS)
+
+```powershell
+cd mobile
+npx eas-cli@latest login
+npx eas-cli@latest build --profile preview --platform android
+```
+
+El perfil `preview` de `eas.json` genera un **APK** instalable (`buildType: apk`, distribución interna). `app.json` habilita tráfico HTTP sin cifrar (`usesCleartextTraffic`) para hablar con el servidor en la red local.
+
+### Limitaciones
+- El servidor guarda las sesiones **en memoria** (máximo 100): se pierden al reiniciarlo. La app conserva copias locales de solo lectura.
+- **HTTPS pendiente** para producción: hoy la comunicación en la red local va por HTTP. Fuera de una red de confianza hace falta HTTPS (y retirar `usesCleartextTraffic`) además del token.
+- **Notificaciones push** planeadas para una fase posterior (por ejemplo, avisar cuando una propuesta espera decisión).
+- En la web, el halo de G no se anima (el pulso animado es solo en Android e iOS).
 
 ## Consola
 
@@ -88,7 +179,8 @@ En la carpeta `salida/` se generan cuatro archivos:
 | `main.py` | Punto de entrada por consola, resumen y gráfica |
 | `servidor.py` | API REST y servidor de la app (solo biblioteca estándar) |
 | `web/` | App web / móvil (PWA): `index.html`, `estilos.css`, `app.js`, manifiesto, service worker e íconos del logotipo |
-| `pruebas.py` | Pruebas de jerarquía, permisos, flujos, contingencia, fallas, API y los criterios de distribución y escenarios |
+| `mobile/` | App nativa (React Native + Expo): `app/` pantallas, `src/api` cliente tipado, `src/componentes`, pruebas en `__tests__/` |
+| `pruebas.py` | Pruebas de jerarquía, permisos, flujos, contingencia, fallas, API (incluidos token, salud, operador, listado, CORS y contrato con la app móvil) y los criterios de distribución y escenarios |
 | `docs/capturas/` | Capturas de la app con una falla del alimentador A1 |
 
 ## Modelo de la red de distribución
@@ -199,4 +291,4 @@ La distribución por alimentador y los escenarios no agregan aristas ni comunica
 - El recorte parcial supone que cada carga puede reducirse en cualquier fracción. En la práctica se hace por circuitos o bloques de carga, así que el recorte real puede ser algo mayor.
 - La banda P90 aplica el cuantil 90 en todas las horas a la vez (y P10 a las renovables). Es más pesimista que un P90 conjunto, así que la contingencia robusta puede recortar bastante más que el déficit esperado en P50. La cobertura medida (≈ 90 % frente a 80 % nominal) indica bandas algo anchas.
 - La cobertura de las bandas se valida con un solo día fuera de muestra y solo para las cargas.
-- El servidor guarda las sesiones en memoria (máximo 100) y no tiene inicio de sesión: es para uso local o en una red de confianza. Para publicarlo hace falta autenticación del operador y HTTPS.
+- El servidor guarda las sesiones en memoria (máximo 100). El token opcional (`ELECTRIAGENT_TOKEN`) protege la API, pero no hay cuentas por operador: es para uso local o en una red de confianza. Para publicarlo hace falta HTTPS y autenticación por persona.

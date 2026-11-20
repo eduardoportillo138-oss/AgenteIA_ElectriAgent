@@ -93,7 +93,7 @@ def prueba_api():
     import urllib.request
 
     import servidor
-    srv = servidor.crear_servidor("127.0.0.1", 0, silencioso=True)
+    srv = servidor.crear_servidor("127.0.0.1", 0, silencioso=True, token="")
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{srv.server_address[1]}/api"
 
@@ -284,7 +284,7 @@ def prueba_catalogo():
         assert "RESULTADO: APROBADA" in s and _costo(s) == 36, (cond, alim)
     print(f"OK  catálogo: las {len(_catalogo())} condiciones completan A->H en modo auto (costo 36)")
 
-    srv = servidor.crear_servidor("127.0.0.1", 0, silencioso=True)
+    srv = servidor.crear_servidor("127.0.0.1", 0, silencioso=True, token="")
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{srv.server_address[1]}/api"
 
@@ -311,6 +311,135 @@ def prueba_catalogo():
     print("OK  catálogo en la API: propuesta por alimentador con bandas, aprobación y costo 36")
 
 
+# ------------------------------------------------ API para la app móvil
+# Claves de la vista que consume la app (mobile/src/api/tipos.ts). Si cambian, hay que
+# actualizar los tipos de la app: esta prueba es el contrato entre ambos.
+CONTRATO_VISTA = {"id", "estado", "periodo", "condicion", "dia_recomendado", "coordinacion", "consola",
+                  "analisis", "anomalias", "propuesta", "alternativas", "trazabilidad", "historial",
+                  "motivo_escalamiento", "terminado"}
+CONTRATO_PROPUESTA = {"escenario", "nombre", "estrategia", "modo", "justificacion", "acciones", "metricas",
+                      "metricas_base", "evaluacion_iso", "serie", "robusto", "metricas_p90",
+                      "base_planificacion", "alimentadores", "recorte_por_carga"}
+CONTRATO_METRICAS = {"costo_mxn", "renovable_pct", "margen_min_pct", "desplazado_kwh", "deficit_kwh",
+                     "recorte_kwh", "perdidas_kwh", "deficit_p90_kwh"}
+CONTRATO_SERIE = {"demanda_base", "demanda_recomendada", "renovable", "capacidad_kw", "horas_suspension",
+                  "bandas", "por_alimentador"}
+CONTRATO_SERIE_ALIM = {"nombre", "demanda_base", "demanda_recomendada", "renovable", "capacidad_kw", "limite",
+                       "demanda_p10", "demanda_p90", "recorte", "horas_recorte"}
+CONTRATO_ALTERNATIVA = {"id", "nombre", "costo_mxn", "renovable_pct", "deficit_kwh", "desplazado_kwh",
+                        "suspendido_kwh", "riesgo_max", "aceptable", "recorte_kwh", "robusto"}
+CONTRATO_CONFIG = {"sistema", "periodos", "condiciones", "grafo", "red", "tolerancia_riesgo",
+                   "alimentadores_falla"}
+
+
+def _api_cliente(srv):
+    import json
+    import urllib.error
+    import urllib.request
+    base = f"http://127.0.0.1:{srv.server_address[1]}/api"
+
+    def pedir(metodo, ruta, cuerpo=None, cabeceras=None, crudo=False):
+        req = urllib.request.Request(base + ruta, method=metodo,
+                                     data=None if cuerpo is None else json.dumps(cuerpo).encode(),
+                                     headers={"Content-Type": "application/json", **(cabeceras or {})})
+        try:
+            with urllib.request.urlopen(req) as r:
+                return (r.status, dict(r.headers)) if crudo else (r.status, json.loads(r.read() or b"{}"))
+        except urllib.error.HTTPError as e:
+            return (e.code, dict(e.headers)) if crudo else (e.code, json.loads(e.read() or b"{}"))
+    return pedir
+
+
+def _servidor(**kw):
+    import threading
+    import servidor
+    srv = servidor.crear_servidor("127.0.0.1", 0, silencioso=True, **{"token": "", **kw})
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv
+
+
+def prueba_api_movil():
+    import servidor
+    # Salud y autenticación por token
+    srv = _servidor(token="token-de-prueba")
+    pedir = _api_cliente(srv)
+    try:
+        assert pedir("GET", "/salud")[0] == 401
+        st, v = pedir("GET", "/config", cabeceras={"Authorization": "Bearer otro"})
+        assert st == 401 and "token" in v["error"]
+        st, v = pedir("GET", "/salud", cabeceras={"Authorization": "Bearer token-de-prueba"})
+        assert st == 200 and v["estado"] == "ok" and v["version_api"] and v["version_modelo"]
+        assert pedir("OPTIONS", "/sesiones", crudo=True)[0] == 204    # la verificación previa no exige token
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    print("OK  API: token obligatorio cuando existe (401 si falta o es incorrecto) y /api/salud")
+
+    srv = _servidor(origenes=("http://localhost:8081",))
+    pedir = _api_cliente(srv)
+    try:
+        st, v = pedir("GET", "/salud")
+        assert st == 200 and set(v) == {"estado", "version_api", "version_modelo"}
+        # CORS restringido
+        _, h = pedir("GET", "/salud", cabeceras={"Origin": "http://localhost:8081"}, crudo=True)
+        assert h.get("Access-Control-Allow-Origin") == "http://localhost:8081"
+        _, h = pedir("GET", "/salud", cabeceras={"Origin": "http://sitio-ajeno.example"}, crudo=True)
+        assert "Access-Control-Allow-Origin" not in h
+        print("OK  API: sin token se comporta como antes; CORS solo para orígenes permitidos")
+
+        # Operador que firma la decisión: historial, pizarra y bitácora
+        st, v = pedir("POST", "/sesiones", {"condicion": "ola_calor"})
+        sid = v["id"]
+        st, e = pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True, "operador": "x" * 81})
+        assert st == 400 and "operador" in e["error"]
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion",
+                      {"aprobado": False, "motivo": "Muy invasiva", "operador": "Ing. Pruebas"})
+        assert st == 200 and v["historial"][-1]["operador"] == "Ing. Pruebas"
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True, "operador": " Ing. Pruebas "})
+        assert st == 200 and v["estado"] == "aprobada" and v["historial"][-1]["operador"] == "Ing. Pruebas"
+        s = servidor.obtener(sid)
+        assert s.pizarra.leer("aprobacion")["operador"] == "Ing. Pruebas"
+        firmas = [e for e in s.bitacora.eventos if e["tipo"] == "decision_humana"]
+        assert len(firmas) == 2 and all(f["operador"] == "Ing. Pruebas" for f in firmas)
+        st, rep = pedir("GET", f"/sesiones/{sid}/reporte")
+        assert rep["aprobacion"]["operador"] == "Ing. Pruebas"
+        assert pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True})[0] == 409
+        print("OK  API: el operador que firma queda en el historial, la pizarra, el reporte y la bitácora")
+
+        # Listado de sesiones en memoria
+        st, otra = pedir("POST", "/sesiones", {"condicion": "falla_alimentador", "alimentador": "A1"})
+        st, lista = pedir("GET", "/sesiones")
+        assert st == 200
+        ids = [x["id"] for x in lista["sesiones"]]
+        assert ids.index(otra["id"]) < ids.index(sid)       # la más reciente primero
+        item = next(x for x in lista["sesiones"] if x["id"] == sid)
+        assert set(item) == {"id", "fecha", "periodo", "condicion", "estado", "escenario"}
+        assert item["estado"] == "aprobada" and item["escenario"]
+        print("OK  API: /api/sesiones lista las sesiones en memoria (id, fecha, periodo, condición, estado, escenario)")
+
+        # Contrato con la app móvil
+        st, cfg = pedir("GET", "/config")
+        assert CONTRATO_CONFIG <= set(cfg)
+        for vista in (otra, pedir("GET", f"/sesiones/{sid}")[1]):
+            assert CONTRATO_VISTA <= set(vista), CONTRATO_VISTA - set(vista)
+            p = vista["propuesta"]
+            assert CONTRATO_PROPUESTA <= set(p), CONTRATO_PROPUESTA - set(p)
+            assert CONTRATO_METRICAS <= set(p["metricas"])
+            assert CONTRATO_SERIE <= set(p["serie"])
+            for serie in p["serie"]["por_alimentador"].values():
+                assert CONTRATO_SERIE_ALIM <= set(serie)
+                assert all(len(serie[k]) == 24 for k in ("demanda_base", "demanda_p10", "demanda_p90", "limite"))
+            for a in vista["alternativas"]:
+                assert CONTRATO_ALTERNATIVA <= set(a)
+            assert {"riesgos", "impactos", "riesgo_max", "categoria_max"} <= set(p["evaluacion_iso"])
+            assert {"version_modelo", "accion_monitoreo", "cobertura_bandas_pct"} <= set(vista["trazabilidad"])
+            assert {"recorrido", "costo", "mensajes"} == set(vista["coordinacion"])
+        print("OK  API: contrato de la vista y de la configuración que consume la app móvil")
+    finally:
+        srv.shutdown()
+        srv.server_close()
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -324,4 +453,5 @@ if __name__ == "__main__":
         prueba_baja_renovable()
         prueba_bandas()
         prueba_catalogo()
+        prueba_api_movil()
     print("\nTodas las pruebas pasaron.")
