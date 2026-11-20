@@ -602,19 +602,15 @@ class AgenteMeta(Agente):
 
 # ============================================================ G - Humano
 class AprobacionHumana(Agente):
-<<<<<<< HEAD
     """Nodo G. Modos:
       interactivo -> pregunta por consola
       auto        -> aprueba (tras `rechazos_auto` rechazos) para demostraciones
       web         -> deja la propuesta en espera; el operador responde con `responder()`
     """
-=======
->>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
     def __init__(self, *a, modo: str = "interactivo", rechazos_auto: int = 0, **k):
         super().__init__(*a, **k)
         self.modo = modo
         self.rechazos_auto = rechazos_auto
-<<<<<<< HEAD
         self.pendiente: dict | None = None      # propuesta que espera decisión (modo web)
         self.historial: list[dict] = []         # decisiones del operador
 
@@ -637,8 +633,6 @@ class AprobacionHumana(Agente):
             self.enviar("H", P.INFORM, {"clave": "decision", "aprobado": True}, conv)
         else:
             self.enviar("C", P.REJECT, {"escenario": escenario, "motivo": motivo}, conv)
-=======
->>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
 
     def procesar(self, msg: Mensaje):
         decision = self.pizarra.leer("decision")
@@ -650,15 +644,12 @@ class AprobacionHumana(Agente):
         esc = next(e for e in self.pizarra.leer("escenarios")["lista"] if e.id == decision["escenario"])
         ev = next(e for e in self.pizarra.leer("evaluacion")["escenarios"] if e["id"] == esc.id)
         m = esc.metricas
-<<<<<<< HEAD
 
         if self.modo == "web":
             self.pendiente = {"escenario": esc.id, "conversacion": msg.conversacion}
             self.log(f"propuesta {esc.id} en espera de la decisión del operador")
             return
 
-=======
->>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
         print("\n" + "-" * 70)
         print(f"  PROPUESTA PARA APROBACIÓN  [{esc.id}] {esc.nombre}")
         print(f"  Modo: {decision['modo']} | Riesgo máximo: {ev['riesgo_max']} ({ev['categoria_max']})")
@@ -678,17 +669,7 @@ class AprobacionHumana(Agente):
             self.rechazos_auto -= 1
             print(f"  (modo automático) {'APROBADO' if aprobado else 'RECHAZADO'}")
 
-<<<<<<< HEAD
         self._registrar(esc.id, aprobado, motivo, msg.conversacion)
-=======
-        self.pizarra.escribir("G", "aprobacion", {"aprobado": aprobado, "escenario": esc.id,
-                                                  "motivo": motivo,
-                                                  "fecha": datetime.now().isoformat(timespec="seconds")})
-        if aprobado:
-            self.enviar("H", P.INFORM, {"clave": "decision", "aprobado": True}, msg.conversacion)
-        else:
-            self.enviar("C", P.REJECT, {"escenario": esc.id, "motivo": motivo}, msg.conversacion)
->>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
 
 
 # ============================================================ H - Salida

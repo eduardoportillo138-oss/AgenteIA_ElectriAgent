@@ -53,8 +53,10 @@ def prueba_pizarra():
 
 
 def _ejecutar(*args):
+    # UTF-8 explícito: en Windows la consola redirigida usa cp1252 y rompe acentos y símbolos
     r = subprocess.run([sys.executable, "main.py", "--modo", "auto", "--salida", "salida_pruebas", *args],
-                       cwd=AQUI, capture_output=True, text=True)
+                       cwd=AQUI, capture_output=True, text=True, encoding="utf-8",
+                       env={**os.environ, "PYTHONIOENCODING": "utf-8"})
     assert r.returncode == 0, r.stderr
     return r.stdout
 
@@ -83,7 +85,6 @@ def prueba_flujos():
     print("OK  fallas transitorias en D, E o F: el supervisor reintenta y el flujo termina")
 
 
-<<<<<<< HEAD
 def prueba_api():
     """Servidor web: la propuesta espera al operador; rechazo y aprobación por la API."""
     import json
@@ -141,15 +142,10 @@ def prueba_api():
         srv.server_close()
 
 
-=======
->>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
         prueba_pizarra()
         prueba_flujos()
-<<<<<<< HEAD
         prueba_api()
-=======
->>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
     print("\nTodas las pruebas pasaron.")
