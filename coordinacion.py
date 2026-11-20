@@ -109,15 +109,22 @@ def huella(obj: Any) -> str:
 
 # ----------------------------------------------------- Bus + planificador
 class BusCoordinacion:
+<<<<<<< HEAD
     def __init__(self, bitacora: Bitacora, verbose: bool = True):
+=======
+    def __init__(self, bitacora: Bitacora):
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
         self.agentes: dict[str, Any] = {}
         self.buzones: dict[str, deque[Mensaje]] = {}
         self.bitacora = bitacora
         self.costo_total = 0
         self.recorrido: list[str] = []
         self.enviados = 0
+<<<<<<< HEAD
         self.verbose = verbose            # False: no imprime en consola (modo servidor)
         self.consola: list[dict] = []     # registro legible de lo que dice cada agente
+=======
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
 
     def registrar(self, agente):
         self.agentes[agente.nodo] = agente
@@ -182,10 +189,14 @@ class Agente:
         self.bus.enviar(Mensaje(self.nodo, receptor, performativa, contenido, conversacion))
 
     def log(self, texto: str):
+<<<<<<< HEAD
         self.bus.consola.append({"fecha": datetime.now().isoformat(timespec="seconds"),
                                  "nodo": self.nodo, "agente": self.nombre, "texto": texto})
         if self.bus.verbose:
             print(f"  [{self.nodo}] {self.nombre}: {texto}")
+=======
+        print(f"  [{self.nodo}] {self.nombre}: {texto}")
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
 
     def procesar(self, msg: Mensaje):
         raise NotImplementedError

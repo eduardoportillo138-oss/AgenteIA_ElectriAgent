@@ -10,6 +10,7 @@ Ejemplos:
     python main.py --modo auto --falla aprendizaje  # demuestra el manejo de fallas
 
 Requiere: numpy, matplotlib
+<<<<<<< HEAD
 Para la aplicación web / móvil:  python servidor.py
 """
 import argparse
@@ -20,6 +21,20 @@ import numpy as np
 from agentes import CONDICIONES
 from modelo_red import PERIODOS
 from motor import FALLAS, crear_sistema
+=======
+"""
+import argparse
+import os
+import uuid
+from datetime import datetime
+
+import numpy as np
+
+from agentes import (CONDICIONES, AgenteAprendizaje, AgenteDeliberativo, AgenteMeta,
+                     AprobacionHumana, CapturaIoT, EvaluadorISO, RecomendacionFinal, Usuario)
+from coordinacion import ARISTAS, BusCoordinacion, Bitacora, Pizarra
+from modelo_red import PERIODOS, SimuladorIoT, red_ejemplo
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
 
 
 def graficar(reporte, escenarios, red, ruta, mostrar):
@@ -73,13 +88,18 @@ def main():
     ap.add_argument("--modo", choices=["interactivo", "auto"], default="interactivo",
                     help="aprobación humana por consola o automática (demostración)")
     ap.add_argument("--rechazos", type=int, default=0, help="rechazos automáticos antes de aprobar")
+<<<<<<< HEAD
     ap.add_argument("--falla", choices=FALLAS, default="ninguna",
+=======
+    ap.add_argument("--falla", choices=["ninguna", "aprendizaje", "deliberativo", "iso"], default="ninguna",
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
                     help="simula una falla transitoria en un agente")
     ap.add_argument("--semilla", type=int, default=7)
     ap.add_argument("--salida", default="salida")
     ap.add_argument("--mostrar", action="store_true", help="abre la gráfica en una ventana")
     args = ap.parse_args()
 
+<<<<<<< HEAD
     s = crear_sistema(periodo=args.periodo, condicion=args.condicion, modo=args.modo,
                       rechazos=args.rechazos, falla=args.falla, semilla=args.semilla,
                       salida=args.salida)
@@ -92,6 +112,34 @@ def main():
     s.iniciar()
 
     rep = s.salida.reporte
+=======
+    os.makedirs(args.salida, exist_ok=True)
+    red = red_ejemplo()
+    fin = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    bitacora = Bitacora()
+    pizarra = Pizarra(bitacora)
+    bus = BusCoordinacion(bitacora)
+    conv = uuid.uuid4().hex[:8]
+
+    usuario = Usuario("A", bus, pizarra)
+    CapturaIoT("B", bus, pizarra, simulador=SimuladorIoT(red, args.semilla), fin=fin)
+    AgenteMeta("C", bus, pizarra, condicion=args.condicion)
+    AgenteAprendizaje("D", bus, pizarra, ruta_memoria=os.path.join(args.salida, "memoria_aprendizaje.json"),
+                      fallar=args.falla == "aprendizaje")
+    AgenteDeliberativo("E", bus, pizarra, red=red, fallar=args.falla == "deliberativo")
+    EvaluadorISO("F", bus, pizarra, fallar=args.falla == "iso")
+    AprobacionHumana("G", bus, pizarra, modo=args.modo, rechazos_auto=args.rechazos)
+    salida = RecomendacionFinal("H", bus, pizarra, red=red, periodo=args.periodo, salida=args.salida)
+
+    print("=" * 70)
+    print(f"  ELECTRIAGENT | {red.subestacion} ({red.tension_mt_kv} kV MT / {red.tension_bt} BT)")
+    print(f"  Día a recomendar: {fin:%Y-%m-%d} | Condición: {CONDICIONES[args.condicion]['desc']}")
+    print("=" * 70)
+    usuario.iniciar(args.periodo, conv)
+    bus.ejecutar()
+
+    rep = salida.reporte
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
     print("\n" + "=" * 70)
     print(f"  RESULTADO: {rep['estado']}")
     if rep["recomendacion"]:
@@ -113,7 +161,11 @@ def main():
     print(f"  Costo de coordinación (pesos del grafo): {bus.costo_total}")
     print("=" * 70)
 
+<<<<<<< HEAD
     s.guardar_bitacora()
+=======
+    bitacora.guardar(os.path.join(args.salida, "bitacora_trazabilidad.json"))
+>>>>>>> 9be51136663ac36fd03ce90c555d1e9a012a9e1e
     escenarios = pizarra.leer("escenarios")
     if escenarios:
         graficar(rep, escenarios, red, os.path.join(args.salida, "grafica_recomendacion.png"), args.mostrar)
