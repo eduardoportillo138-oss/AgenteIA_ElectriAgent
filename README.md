@@ -4,7 +4,38 @@ Prototipo funcional del sistema multi-agente **ElectriAgent** para optimizar y g
 
 El sistema es **informativo**: analiza, simula y recomienda. No controla dispositivos ni la red, y toda recomendación necesita la aprobación de una persona (Regla 4).
 
-## Requisitos y ejecución
+## Aplicación web y móvil
+
+```bash
+pip install -r requirements.txt
+python servidor.py                     # abre http://localhost:8000
+python servidor.py --host 0.0.0.0      # para abrirla desde el celular en la misma red Wi-Fi
+```
+
+La app (carpeta `web/`) lleva el flujo del documento a una interfaz para el usuario final:
+
+1. **Elegir el periodo** (1 día, 1 semana, 1 mes, 6 meses, 1 año) y la condición prevista de la red.
+2. **Ver el recorrido de los agentes** sobre el grafo etiquetado A–H: cada arista se ilumina cuando pasa un mensaje, con su peso y el costo de coordinación.
+3. **Revisar la propuesta**: acciones concretas, métricas frente a la operación actual, justificación regla por regla (1–4) y la gráfica de 24 horas con tarifas, renovables y límite de suministro.
+4. **Aprobar o rechazar** (Validación humana). El rechazo pide un motivo y el agente de meta replantea una alternativa menos invasiva; tras 3 rechazos escala el caso.
+5. **Consultar la evidencia**: consumo por carga, anomalías detectadas, riesgos ISO/IEC 23894, impactos ISO/IEC 42005, monitoreo ISO/IEC 5338, escenarios comparados y la bitácora de mensajes. El reporte y la bitácora se descargan en JSON.
+
+Es una **PWA**: en el celular se puede instalar desde el navegador ("Agregar a pantalla de inicio") y se adapta a pantalla angosta (grafo vertical y botones de decisión fijos abajo). Sin conexión abre la interfaz, pero los análisis siempre se piden al servidor. El modo sin conexión requiere HTTPS o `localhost`.
+
+### API REST
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/api/config` | Periodos, condiciones, grafo y modelo de la red |
+| POST | `/api/sesiones` | `{periodo, condicion, falla?, semilla?}`: analiza y deja la propuesta en espera |
+| GET | `/api/sesiones/<id>` | Estado de la sesión |
+| POST | `/api/sesiones/<id>/aprobacion` | `{aprobado, motivo}`: decisión del operador (el rechazo exige motivo) |
+| GET | `/api/sesiones/<id>/reporte` | Reporte final (cuando ya se decidió) |
+| GET | `/api/sesiones/<id>/bitacora` | Bitácora de trazabilidad |
+
+Estados de una sesión: `en_espera`, `aprobada`, `escalada`. La API está pensada para que una app nativa (Flutter, React Native) la consuma sin cambios.
+
+## Consola
 
 ```bash
 pip install numpy matplotlib
@@ -38,9 +69,12 @@ En la carpeta `salida/` se generan cuatro archivos:
 |---|---|
 | `modelo_red.py` | Red de distribución (media y baja tensión, cargas, renovables, tarifas) y simulador IoT |
 | `coordinacion.py` | Grafo A–H, mensajes, bus, pizarra, bitácora y planificador |
-| `agentes.py` | Los 8 agentes y las reglas de decisión |
-| `main.py` | Punto de entrada, resumen en consola y gráfica |
-| `pruebas.py` | Pruebas de jerarquía, permisos, flujos, contingencia y fallas |
+| `agentes.py` | Los 8 agentes y las reglas de decisión. G admite aprobación por consola, automática o web (asíncrona) |
+| `motor.py` | Arma el sistema completo; lo comparten la consola y el servidor |
+| `main.py` | Punto de entrada por consola, resumen y gráfica |
+| `servidor.py` | API REST y servidor de la app (solo biblioteca estándar) |
+| `web/` | App web / móvil (PWA): `index.html`, `estilos.css`, `app.js`, manifiesto, service worker e íconos del logotipo |
+| `pruebas.py` | Pruebas de jerarquía, permisos, flujos, contingencia, fallas y API |
 
 ## Modelo de la red de distribución
 
@@ -98,3 +132,4 @@ Si el operador rechaza la propuesta, el agente de meta excluye ese escenario y v
 - El pronóstico es estadístico: promedio ponderado con tendencia. Puede reemplazarse por un modelo de aprendizaje automático sin cambiar la coordinación.
 - El balance de energía es horario y agregado en la subestación; no se modelan flujos de potencia, pérdidas ni tensiones por alimentador.
 - Las suspensiones son por carga completa (circuito), así que pueden recortar más energía de la estrictamente necesaria.
+- El servidor guarda las sesiones en memoria (máximo 100) y no tiene inicio de sesión: es para uso local o en una red de confianza. Para publicarlo hace falta autenticación del operador y HTTPS.
