@@ -71,10 +71,13 @@ main { padding: 0 clamp(1rem, 4vw, 2.5rem) 3rem; max-width: 1280px; margin: 0 au
 .chip input:focus-visible + span { outline: 3px solid var(--cian); outline-offset: 2px; }
 .fila-campos { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 1.4rem; margin-top: 1.2rem; }
 .campo { display: flex; flex-direction: column; gap: .35rem; font-size: .88rem; color: var(--suave); }
-select, textarea {
+select, textarea, input[type="number"] {
   font: inherit; color: var(--texto); background: var(--panel);
   border: 1px solid var(--linea); border-radius: var(--radio-s); padding: .6rem .7rem; min-width: 15rem;
 }
+input[type="number"] { min-width: 8rem; width: 8rem; }
+.condicion-desc { margin-top: .8rem; font-size: .9rem; color: var(--texto); max-width: 70ch; }
+@media (max-width: 640px) { select { min-width: 0; width: 100%; } .campo { flex: 1 1 100%; } }
 textarea { width: 100%; min-height: 5rem; resize: vertical; }
 .avanzado summary { cursor: pointer; color: var(--suave); font-size: .88rem; padding: .6rem 0; }
 .avanzado[open] summary { margin-bottom: .4rem; }
@@ -188,7 +191,29 @@ textarea { width: 100%; min-height: 5rem; resize: vertical; }
   .barra-red { display: none; }
 }
 
+/* insignias y recorte parcial */
+.insignias { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+.insignia { display: inline-block; padding: .15rem .6rem; border-radius: 999px; font: 600 .82rem var(--tipo-rotulo); border: 1px solid var(--linea); color: var(--suave); }
+.insignia.ok { border-color: var(--verde); color: var(--verde); }
+.insignia.riesgo { border-color: var(--alerta); color: var(--alerta); }
+.recortes { margin-top: .4rem; }
+.recortes .barra-recorte { height: 6px; background: var(--fondo); border-radius: 3px; margin-top: .3rem; overflow: hidden; }
+.recortes .barra-recorte i { display: block; height: 100%; background: var(--alerta); }
+.alimentadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .8rem; margin-top: .4rem; }
+.alimentadores > div { background: var(--panel-2); border-radius: var(--radio-s); padding: .6rem .8rem; font-size: .88rem; }
+.alimentadores b { font-family: var(--tipo-rotulo); display: block; font-size: 1rem; }
+.alimentadores .uso { height: 6px; background: var(--fondo); border-radius: 3px; margin: .35rem 0 .2rem; overflow: hidden; }
+.alimentadores .uso i { display: block; height: 100%; background: var(--cian); }
+.alimentadores .uso i.alto { background: var(--alerta); }
+
 /* gráfica */
+.segmentado { display: inline-flex; flex-wrap: wrap; gap: 0; margin-top: .8rem; border: 1px solid var(--linea); border-radius: 999px; overflow: hidden; }
+.segmentado button {
+  font: 600 .9rem var(--tipo-rotulo); color: var(--texto); background: transparent; border: 0;
+  padding: .5rem 1rem; min-height: 40px; cursor: pointer;
+}
+.segmentado button + button { border-left: 1px solid var(--linea); }
+.segmentado button[aria-pressed="true"] { background: var(--cian); color: #062027; }
 #grafica svg { width: 100%; height: auto; display: block; margin-top: .8rem; }
 #grafica .eje text { font: 13px var(--tipo-texto); fill: var(--suave); }
 #grafica .eje line { stroke: var(--linea); }

@@ -34,7 +34,15 @@
         <div class="fila-campos">
           <label class="campo">
             <span>Condición prevista de la red</span>
-            <select id="condicion" name="condicion"></select>
+            <select id="condicion" name="condicion" aria-describedby="condicion-desc"></select>
+          </label>
+          <label class="campo" id="campo-alimentador" hidden>
+            <span>Alimentador en falla</span>
+            <select id="alimentador" name="alimentador"></select>
+          </label>
+          <label class="campo" id="campo-crecimiento" hidden>
+            <span>Crecimiento de la demanda (%)</span>
+            <input id="crecimiento" name="crecimiento" type="number" min="-50" max="200" step="1" value="15" inputmode="decimal">
           </label>
           <details class="avanzado">
             <summary>Simular una falla de agente</summary>
@@ -51,6 +59,7 @@
           <button class="boton boton-principal" type="submit" id="btn-analizar">Analizar consumo</button>
         </div>
       </form>
+      <p class="condicion-desc" id="condicion-desc"></p>
       <p class="aviso">ElectriAgent solo analiza y recomienda. No enciende, apaga ni controla equipos ni la red: cada recomendación espera tu aprobación.</p>
     </section>
 
@@ -71,6 +80,8 @@
       <section class="tarjeta grafica" aria-labelledby="t-grafica">
         <h2 id="t-grafica">Día recomendado, hora por hora</h2>
         <p class="sub" id="grafica-sub"></p>
+        <div class="segmentado" id="grafica-vista" role="group" aria-label="Ver la red completa o un alimentador"></div>
+        <p class="sub" id="grafica-resumen"></p>
         <div id="grafica"></div>
         <ul class="leyenda" id="grafica-leyenda"></ul>
       </section>
@@ -116,7 +127,8 @@
           <table class="tabla" id="tabla-alternativas">
             <thead><tr>
               <th scope="col">Escenario</th><th scope="col">Costo (MXN)</th><th scope="col">Renovable</th>
-              <th scope="col">Déficit (kWh)</th><th scope="col">Desplazado (kWh)</th><th scope="col">Riesgo</th>
+              <th scope="col">Déficit (kWh)</th><th scope="col">Desplazado (kWh)</th><th scope="col">Recorte (kWh)</th>
+              <th scope="col"><abbr title="Sin déficit en el escenario desfavorable: demanda P90 y renovables P10">Robusta</abbr></th><th scope="col">Riesgo</th>
             </tr></thead>
             <tbody></tbody>
           </table>

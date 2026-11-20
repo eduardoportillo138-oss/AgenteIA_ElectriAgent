@@ -8,7 +8,8 @@ Solo usa la biblioteca estándar de Python (más numpy, que ya usa el motor).
 
 API
     GET  /api/config                        periodos, condiciones, grafo y red
-    POST /api/sesiones                      {periodo, condicion, falla?, semilla?} -> crea y analiza
+    POST /api/sesiones                      {periodo, condicion, alimentador?, crecimiento_pct?,
+                                             falla?, semilla?} -> crea y analiza
     GET  /api/sesiones/<id>                 estado de la sesión
     POST /api/sesiones/<id>/aprobacion      {aprobado: bool, motivo?: str} -> decisión del operador
     GET  /api/sesiones/<id>/reporte         reporte final (JSON descargable)
@@ -31,7 +32,10 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
-from agentes import CONDICIONES, MAPE_REENTRENAR, TOLERANCIA_RIESGO, VERSION_MODELO
+import numpy as np
+
+from agentes import COBERTURA_NOMINAL, MAPE_REENTRENAR, TOLERANCIA_RIESGO, VERSION_MODELO
+from condiciones import ALIMENTADORES_FALLA, CONDICIONES, parametros, resolver
 from coordinacion import ARISTAS, NODOS
 from modelo_red import NOMBRE_PERIODO, PERIODOS, red_ejemplo
 from motor import FALLAS, Sistema, a_json, crear_sistema
@@ -61,11 +65,15 @@ def configuracion() -> dict:
     return {
         "sistema": VERSION_MODELO,
         "periodos": [{"id": k, "nombre": NOMBRE_PERIODO[k], "dias": v} for k, v in PERIODOS.items()],
-        "condiciones": [{"id": k, "nombre": v["desc"]} for k, v in CONDICIONES.items()],
+        "condiciones": [{"id": k, "nombre": v["desc"], "descripcion": v["descripcion"],
+                         "parametros": parametros(resolver(k))} for k, v in CONDICIONES.items()
+                        if "alias_de" not in v],
+        "alimentadores_falla": list(ALIMENTADORES_FALLA),
         "grafo": {"nodos": NODOS, "aristas": [{"de": a, "a": b, "peso": p} for (a, b), p in ARISTAS.items()]},
         "red": _red(red),
         "tolerancia_riesgo": TOLERANCIA_RIESGO,
         "mape_reentrenar": MAPE_REENTRENAR,
+        "cobertura_nominal_pct": COBERTURA_NOMINAL,
     }
 
 
@@ -79,7 +87,45 @@ def _red(red) -> dict:
                         "alimentador": r.alimentador} for r in red.renovables],
         "tarifas": red.TARIFAS,
         "periodo_tarifario": [red.periodo_tarifario(h) for h in range(24)],
+        "alimentadores": [{"clave": a.clave, "nombre": a.nombre, "nivel": a.nivel, "capacidad_kw": a.capacidad_kw,
+                           "transformador_bt_kw": a.transformador_bt_kw or None} for a in red.alimentadores],
+        "perdidas_mt_pct": red.perdidas_mt_pct,
+        "perdidas_bt_pct": red.perdidas_bt_pct,
+        "limite_inyeccion_kw": red.limite_inyeccion_kw,
     }
+
+
+def _series_red(esc, base, paquete, red) -> dict:
+    """Series de 24 h para la gráfica: subestación (SE) y cada alimentador, con la
+    banda P10-P90 del pronóstico de demanda y de renovables."""
+    ctx, lim = paquete["contexto"], paquete["limites"]
+    d, db = esc.distribucion, (base or esc).distribucion
+    alim_de = {c.nombre: red.alimentador(c.alimentador).clave for c in red.cargas}
+    fuente_de = {r.nombre: red.alimentador(r.alimentador).clave for r in red.renovables}
+
+    def suma(series: dict, de: dict, clave):
+        return sum((v for n, v in series.items() if clave is None or de[n] == clave), np.zeros(24))
+    out = {}
+    for clave in [None] + d.claves:
+        sel = d.series(clave)
+        recorte = sel["recorte"]
+        renovable = sel["renovable_disponible"]
+        cap = lim.subestacion_kw if clave is None else lim.entregable_kw(clave)
+        out[clave or "SE"] = {
+            "nombre": red.subestacion if clave is None else red.alimentador(clave).nombre,
+            "demanda_base": db.series(clave)["demanda"],
+            "demanda_recomendada": sel["demanda"] - recorte,
+            "renovable": renovable,
+            "capacidad_kw": cap,
+            "limite": renovable + cap,
+            "demanda_p10": suma(ctx.cargas_p10, alim_de, clave),
+            "demanda_p90": suma(ctx.cargas_p90, alim_de, clave),
+            "renovable_p10": suma(ctx.renovables_p10, fuente_de, clave),
+            "renovable_p90": suma(ctx.renovables_p90, fuente_de, clave),
+            "recorte": recorte,
+            "horas_recorte": [int(h) for h in np.where(recorte > 0.05)[0]],
+        }
+    return out
 
 
 def vista(sid: str, s: Sistema) -> dict:
@@ -98,6 +144,7 @@ def vista(sid: str, s: Sistema) -> dict:
         estado = "procesando"
 
     escenarios = {e.id: e for e in paquete["lista"]} if paquete else {}
+    cond = resolver(s.condicion, **s.parametros)
     evals = {e["id"]: e for e in evaluacion["escenarios"]} if evaluacion else {}
 
     esc_id = None
@@ -110,18 +157,29 @@ def vista(sid: str, s: Sistema) -> dict:
     if esc_id and esc_id in escenarios:
         esc = escenarios[esc_id]
         base = escenarios.get("S0")
+        por_alim = _series_red(esc, base, paquete, s.red)
+        se = por_alim["SE"]
         propuesta = {
             "escenario": esc.id, "nombre": esc.nombre, "estrategia": esc.estrategia,
             "modo": decision["modo"], "justificacion": decision["justificacion"],
             "acciones": s.salida._acciones(esc), "metricas": esc.metricas,
             "metricas_base": base.metricas if base is not None else None,
             "evaluacion_iso": evals.get(esc.id),
+            "robusto": esc.robusto,
+            "hay_alternativa_robusta": decision.get("hay_alternativa_robusta"),
+            "base_planificacion": esc.base_planificacion,
+            "metricas_p90": esc.metricas_p90,
+            "alimentadores": esc.metricas["alimentadores"],
+            "recorte_por_carga": [{"carga": c, "kwh": round(kwh, 1), "kw_max": kw, "horas": hs}
+                                  for c, (kwh, kw, hs) in s.salida.recorte_por_carga(esc).items()],
             "serie": {
                 "demanda_base": base.demanda if base is not None else esc.demanda,
                 "demanda_recomendada": esc.demanda,
                 "renovable": esc.renovable,
                 "capacidad_kw": esc.capacidad_kw,
                 "horas_suspension": sorted({h for h, _, _ in esc.suspensiones}),
+                "bandas": {k: se[k] for k in ("demanda_p10", "demanda_p90", "renovable_p10", "renovable_p90")},
+                "por_alimentador": por_alim,
             },
         }
 
@@ -129,7 +187,8 @@ def vista(sid: str, s: Sistema) -> dict:
         "id": sid,
         "estado": estado,
         "periodo": {"id": s.periodo, "nombre": NOMBRE_PERIODO[s.periodo]},
-        "condicion": {"id": s.condicion, "nombre": CONDICIONES[s.condicion]["desc"]},
+        "condicion": {"id": s.condicion, "nombre": cond["desc"],
+                      "descripcion": CONDICIONES[s.condicion]["descripcion"], "parametros": parametros(cond)},
         "dia_recomendado": s.fin.date().isoformat(),
         "coordinacion": {"recorrido": s.bus.recorrido, "costo": s.bus.costo_total,
                          "mensajes": s.bus.enviados},
@@ -137,7 +196,7 @@ def vista(sid: str, s: Sistema) -> dict:
         "analisis": {k: analisis.get(k) for k in (
             "dias", "consumo_total_kwh", "consumo_por_carga_kwh", "pico_kw", "fecha_pico", "horas_pico",
             "perfil_horario_kw", "variacion_estacional_kw", "deteccion", "generacion_renovable_kwh",
-            "mape_pct", "experiencia_ejecuciones")} if analisis else None,
+            "mape_pct", "experiencia_ejecuciones", "cobertura_bandas")} if analisis else None,
         "anomalias": (analisis.get("anomalias") or [])[:30],
         "propuesta": propuesta,
         "alternativas": [{
@@ -146,6 +205,9 @@ def vista(sid: str, s: Sistema) -> dict:
             "desplazado_kwh": e.metricas["desplazado_kwh"], "suspendido_kwh": e.metricas["suspendido_kwh"],
             "riesgo_max": evals[e.id]["riesgo_max"] if e.id in evals else None,
             "aceptable": evals[e.id]["aceptable"] if e.id in evals else None,
+            "recorte_kwh": e.metricas["recorte_kwh"], "robusto": e.robusto,
+            "deficit_p90_kwh": e.metricas["deficit_p90_kwh"],
+            "utilizacion_max_pct": e.metricas["utilizacion_max_pct"],
         } for e in escenarios.values()],
         "trazabilidad": evaluacion["trazabilidad"] if evaluacion else None,
         "historial": s.aprobacion.historial,
@@ -160,6 +222,8 @@ def crear_sesion(datos: dict) -> tuple[str, Sistema]:
     condicion = datos.get("condicion", "normal")
     falla = datos.get("falla", "ninguna")
     semilla = datos.get("semilla", 7)
+    alimentador = datos.get("alimentador")
+    crecimiento = datos.get("crecimiento_pct")
     if periodo not in PERIODOS:
         raise ErrorAPI(HTTPStatus.BAD_REQUEST, f"Elige un periodo válido: {', '.join(PERIODOS)}")
     if condicion not in CONDICIONES:
@@ -168,10 +232,16 @@ def crear_sesion(datos: dict) -> tuple[str, Sistema]:
         raise ErrorAPI(HTTPStatus.BAD_REQUEST, f"Falla no válida: {', '.join(FALLAS)}")
     if not isinstance(semilla, int) or isinstance(semilla, bool) or not 0 <= semilla < 2**31:
         raise ErrorAPI(HTTPStatus.BAD_REQUEST, "La semilla debe ser un entero positivo")
+    if alimentador is not None and alimentador not in ALIMENTADORES_FALLA:
+        raise ErrorAPI(HTTPStatus.BAD_REQUEST, f"Alimentador no válido: {', '.join(ALIMENTADORES_FALLA)}")
+    if crecimiento is not None and (not isinstance(crecimiento, (int, float)) or isinstance(crecimiento, bool)
+                                    or not -50 <= crecimiento <= 200):
+        raise ErrorAPI(HTTPStatus.BAD_REQUEST, "El crecimiento debe ser un número entre -50 y 200 (%)")
 
     sid = uuid.uuid4().hex[:10]
     with _motor_lock:
         s = crear_sistema(periodo=periodo, condicion=condicion, modo="web", falla=falla, semilla=semilla,
+                          alimentador=alimentador, crecimiento_pct=crecimiento,
                           salida=os.path.join(DIR_SALIDA, sid),
                           ruta_memoria=os.path.join(DIR_SALIDA, "memoria_aprendizaje.json"),
                           verbose=False)

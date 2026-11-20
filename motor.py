@@ -13,8 +13,9 @@ from datetime import datetime
 
 import numpy as np
 
-from agentes import (CONDICIONES, AgenteAprendizaje, AgenteDeliberativo, AgenteMeta,
+from agentes import (AgenteAprendizaje, AgenteDeliberativo, AgenteMeta,
                      AprobacionHumana, CapturaIoT, EvaluadorISO, RecomendacionFinal, Usuario)
+from condiciones import CONDICIONES, resolver
 from coordinacion import BusCoordinacion, Bitacora, Pizarra
 from modelo_red import PERIODOS, RedDistribucion, SimuladorIoT, red_ejemplo
 
@@ -34,6 +35,7 @@ class Sistema:
     salida: RecomendacionFinal
     dir_salida: str
     fin: datetime
+    parametros: dict = field(default_factory=dict)   # parámetros de la condición (alimentador, crecimiento)
     conversacion: str = field(default_factory=lambda: uuid.uuid4().hex[:8])
 
     def iniciar(self):
@@ -62,11 +64,18 @@ class Sistema:
 def crear_sistema(periodo: str = "1m", condicion: str = "normal", modo: str = "interactivo",
                   rechazos: int = 0, falla: str = "ninguna", semilla: int = 7,
                   salida: str = "salida", ruta_memoria: str | None = None,
-                  verbose: bool = True, fin: datetime | None = None) -> Sistema:
+                  verbose: bool = True, fin: datetime | None = None, alimentador: str | None = None,
+                  crecimiento_pct: float | None = None) -> Sistema:
     if periodo not in PERIODOS:
         raise ValueError(f"Periodo no válido: {periodo}")
     if condicion not in CONDICIONES:
         raise ValueError(f"Condición no válida: {condicion}")
+    parametros = {}
+    if alimentador is not None and condicion == "falla_alimentador":
+        parametros["alimentador"] = alimentador
+    if crecimiento_pct is not None and condicion == "crecimiento_demanda":
+        parametros["crecimiento_pct"] = float(crecimiento_pct)
+    resolver(condicion, **parametros)        # valida los parámetros antes de arrancar
     if falla not in FALLAS:
         raise ValueError(f"Falla no válida: {falla}")
 
@@ -79,7 +88,7 @@ def crear_sistema(periodo: str = "1m", condicion: str = "normal", modo: str = "i
 
     usuario = Usuario("A", bus, pizarra)
     CapturaIoT("B", bus, pizarra, simulador=SimuladorIoT(red, semilla), fin=fin)
-    AgenteMeta("C", bus, pizarra, condicion=condicion)
+    AgenteMeta("C", bus, pizarra, condicion=condicion, parametros=parametros)
     AgenteAprendizaje("D", bus, pizarra,
                       ruta_memoria=ruta_memoria or os.path.join(salida, "memoria_aprendizaje.json"),
                       fallar=falla == "aprendizaje")
@@ -89,11 +98,11 @@ def crear_sistema(periodo: str = "1m", condicion: str = "normal", modo: str = "i
     final = RecomendacionFinal("H", bus, pizarra, red=red, periodo=periodo, salida=salida)
 
     return Sistema(periodo, condicion, red, bitacora, pizarra, bus, usuario, aprobacion,
-                   final, salida, fin)
+                   final, salida, fin, parametros)
 
 
 def a_json(obj):
-    """Convierte tipos de numpy y fechas para json.dumps(default=...)."""
+    """Convierte tipos de numpy, conjuntos y fechas para json.dumps(default=...)."""
     if isinstance(obj, np.ndarray):
         return obj.round(2).tolist()
     if isinstance(obj, np.integer):
@@ -102,4 +111,6 @@ def a_json(obj):
         return round(float(obj), 3)
     if isinstance(obj, datetime):
         return obj.isoformat(timespec="minutes")
+    if isinstance(obj, (set, frozenset)):
+        return sorted(obj)
     return str(obj)

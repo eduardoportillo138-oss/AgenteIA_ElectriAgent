@@ -19,23 +19,19 @@ from datetime import datetime
 
 import numpy as np
 
+from condiciones import (CONDICIONES, factor_demanda, factor_renovable, factores_capacidad,
+                         parametros, resolver)
 from coordinacion import Agente, Mensaje, Performativa as P, huella
-from modelo_red import (COSTO_RENOVABLE, NOMBRE_PERIODO, PERIODOS, RedDistribucion,
-                        SimuladorIoT)
+from distribucion import Distribucion, Limites, asignar, limites_red
+from modelo_red import NOMBRE_PERIODO, PERIODOS, RedDistribucion, SimuladorIoT
 
-VERSION_MODELO = "ElectriAgent-proto 0.1"
+VERSION_MODELO = "ElectriAgent-proto 0.2"
 TOLERANCIA_RIESGO = 12        # nivel máximo aceptable (probabilidad x impacto)
 MARGEN_OBJETIVO = 0.10        # margen mínimo de capacidad deseado
 MAPE_REENTRENAR = 15.0        # % de error que dispara alerta de deriva (ISO/IEC 5338)
-
-CONDICIONES = {   # condición de la red prevista para el día a recomendar
-    "normal": {"demanda": {}, "capacidad": 1.0,
-               "desc": "Operación normal"},
-    "ola_calor": {"demanda": {"residencial": 1.80, "comercial": 1.60, "critica": 1.10},
-                  "capacidad": 1.0, "desc": "Ola de calor (pico de demanda)"},
-    "falla": {"demanda": {}, "capacidad": 0.55,
-              "desc": "Falla parcial del transformador de la subestación"},
-}
+COBERTURA_NOMINAL = 80.0      # % esperado de lecturas dentro de la banda P10-P90
+COBERTURA_MINIMA = 60.0       # por debajo: alerta de calibración de las bandas (ISO/IEC 5338)
+CUANTILES = (10, 50, 90)
 
 
 # ============================================================ A - Usuario
@@ -112,6 +108,62 @@ class AgenteAprendizaje(Agente):
             base = base * tendencia
         return base
 
+    @classmethod
+    def _residuales(cls, m: np.ndarray) -> np.ndarray:
+        """Errores relativos históricos del pronóstico de carga: cada día se
+        pronostica con los días previos (backtest de hasta 60 días). Con un solo
+        día se usa la desviación frente a la mediana local de ±2 horas."""
+        dias = m.shape[0]
+        if dias >= 2:
+            res = []
+            for d in range(max(1, dias - 60), dias):
+                p = cls._pronostico(m[:d])
+                res.append((m[d] - p) / np.maximum(p, 1e-6))
+            return np.concatenate(res)
+        x = m[0]
+        ref = np.array([np.median(x[max(0, i - 2):i + 3]) for i in range(len(x))])
+        return (x - ref) / np.maximum(ref, 1e-6)
+
+    @staticmethod
+    def _residuales_renovable(m: np.ndarray) -> np.ndarray:
+        """Error relativo de la energía diaria renovable (la nubosidad y el viento
+        cambian el día completo). Sin historial se usa una banda por omisión."""
+        dias = m.shape[0]
+        if dias < 2:
+            return np.array([-0.35, 0.0, 0.20])
+        res = []
+        for d in range(max(1, dias - 60), dias):
+            p = m[max(0, d - 3):d].mean(0)
+            res.append(m[d].sum() / max(p.sum(), 1e-6) - 1)
+        return np.array(res)
+
+    @staticmethod
+    def _banda(central: np.ndarray, res: np.ndarray) -> dict:
+        """Bandas P10/P50/P90 centradas en el pronóstico puntual: P50 es el valor
+        central y P10/P90 usan la distancia de esos cuantiles a la mediana de los
+        residuales. Por construcción P10 <= P50 <= P90."""
+        q10, q50, q90 = np.percentile(res, CUANTILES)
+        return {"p10": np.clip(central * (1 + q10 - q50), 0, None),
+                "p50": central.copy(),
+                "p90": central * (1 + q90 - q50)}
+
+    @classmethod
+    def _cobertura(cls, limpias: dict, reales: dict, dias: int) -> dict:
+        """Validación fuera de muestra de las bandas: se construyen con los días
+        previos al último y se cuenta cuántas lecturas reales del último día caen
+        dentro de P10-P90 (ISO/IEC 5338, monitoreo)."""
+        if dias < 3:
+            return {"pct": None, "dentro": 0, "lecturas": 0, "nominal_pct": COBERTURA_NOMINAL}
+        dentro = total = 0
+        for nombre, x in limpias.items():
+            m = x.reshape(dias, 24)[:-1]
+            b = cls._banda(cls._pronostico(m), cls._residuales(m))
+            real = reales[nombre][-24:]
+            dentro += int(((real >= b["p10"] - 1e-6) & (real <= b["p90"] + 1e-6)).sum())
+            total += 24
+        return {"pct": round(dentro / total * 100, 1), "dentro": dentro, "lecturas": total,
+                "nominal_pct": COBERTURA_NOMINAL}
+
     def procesar(self, msg: Mensaje):
         if self.fallar:
             self.fallar = False
@@ -163,6 +215,13 @@ class AgenteAprendizaje(Agente):
         pron_renov = {n: g.reshape(dias, 24)[-min(3, dias):].mean(0)
                       for n, g in datos["generacion"].items()}
 
+        # Bandas de pronóstico (cuantiles de los residuales históricos)
+        bandas_cargas = {n: self._banda(pron_cargas[n], self._residuales(x.reshape(dias, 24)))
+                         for n, x in limpias.items()}
+        bandas_renov = {n: self._banda(pron_renov[n], self._residuales_renovable(g.reshape(dias, 24)))
+                        for n, g in datos["generacion"].items()}
+        cobertura = self._cobertura(limpias, datos["consumo"], dias)
+
         mape = None
         if dias >= 2:   # validación: pronosticar el último día con los anteriores
             pred = sum(self._pronostico(x.reshape(dias, 24)[:-1]) for x in limpias.values())
@@ -189,12 +248,17 @@ class AgenteAprendizaje(Agente):
             "generacion_renovable_kwh": round(float(sum(g.sum() for g in datos["generacion"].values())), 0),
             "pronostico_cargas": pron_cargas,
             "pronostico_renovables": pron_renov,
+            "bandas_cargas": bandas_cargas,
+            "bandas_renovables": bandas_renov,
+            "cobertura_bandas": cobertura,
             "mape_pct": mape,
             "experiencia_ejecuciones": memoria["ejecuciones"],
         }
         self.pizarra.escribir("D", "analisis", analisis)
+        cob = "sin datos" if cobertura["pct"] is None else f"{cobertura['pct']} %"
         self.log(f"consumo {analisis['consumo_total_kwh']:,.0f} kWh, horas pico {horas_pico}, "
-                 f"{len(anomalias)} anomalías, error de pronóstico (MAPE) {mape}%")
+                 f"{len(anomalias)} anomalías, error de pronóstico (MAPE) {mape}%, "
+                 f"bandas P10-P90 con cobertura {cob}")
         self.enviar("C", P.INFORM, {"clave": "analisis", "mape_pct": mape,
                                     "anomalias": len(anomalias)}, msg.conversacion)
 
@@ -212,71 +276,181 @@ class AgenteAprendizaje(Agente):
 
 # ============================================================ E - Deliberativo
 @dataclass
+class Contexto:
+    """Datos del día para simular: pronósticos por banda con la condición ya aplicada."""
+    cargas: dict              # P50 (valor central) por carga, serie de 24 h
+    cargas_p10: dict
+    cargas_p90: dict
+    renovables: dict          # P50 por fuente
+    renovables_p10: dict
+    renovables_p90: dict
+    limites: Limites
+    tarifas: np.ndarray
+
+
+@dataclass
 class Escenario:
     id: str
     nombre: str
     estrategia: str
     intensidad: float
-    demanda: np.ndarray
-    renovable: np.ndarray
-    capacidad_kw: float
+    demanda: np.ndarray            # demanda total planificada (tras desplazar y recortar)
+    renovable: np.ndarray          # renovable total disponible (P50)
+    capacidad_kw: float            # capacidad efectiva del transformador de la subestación
     tarifas: np.ndarray
     desplazamientos: dict = field(default_factory=dict)   # carga -> kWh movidos
     movimientos: list = field(default_factory=list)       # (horas origen, horas destino, kWh)
-    suspensiones: list = field(default_factory=list)      # (hora, carga, kW)
-    metricas: dict = field(default_factory=dict)
-
-    def calcular(self, demanda_original_kwh: float):
-        D, R, cap = self.demanda, self.renovable, self.capacidad_kw
-        r_usada = np.minimum(R, D)
-        conv = D - r_usada
-        deficit = np.maximum(0, conv - cap)
-        conv_servida = np.minimum(conv, cap)
-        costo = float((conv_servida * self.tarifas).sum() + r_usada.sum() * COSTO_RENOVABLE)
-        desplazado = float(sum(self.desplazamientos.values()))
-        self.metricas = {
-            "demanda_kwh": round(float(D.sum()), 1),
-            "renovable_usada_kwh": round(float(r_usada.sum()), 1),
-            "renovable_desperdiciada_kwh": round(float((R - r_usada).sum()), 1),
-            "renovable_pct": round(float(r_usada.sum() / D.sum() * 100), 2),
-            "convencional_kwh": round(float(conv_servida.sum()), 1),
-            "pico_convencional_kw": round(float(conv.max()), 1),
-            "margen_min_pct": round(float((cap - conv.max()) / cap * 100), 2),
-            "deficit_kwh": round(float(deficit.sum()), 1),
-            "horas_deficit": [int(h) for h in np.where(deficit > 0)[0]],
-            "costo_mxn": round(costo, 2),
-            "desplazado_kwh": round(desplazado, 1),
-            "desplazado_pct": round(desplazado / demanda_original_kwh * 100, 2),
-            "suspendido_kwh": round(sum(s[2] for s in self.suspensiones), 1),
-        }
+    suspensiones: list = field(default_factory=list)      # (hora, carga, kW) recorte parcial
+    metricas: dict = field(default_factory=dict)          # evaluación en P50
+    cargas: dict = field(default_factory=dict)            # carga -> 24 h tras desplazar (antes del recorte)
+    recorte: dict = field(default_factory=dict)           # carga -> 24 h de recorte planificado
+    base_planificacion: str = "P50"                       # banda con la que se calculó el recorte
+    distribucion: Distribucion | None = None              # asignación por alimentador en P50
+    distribucion_p90: Distribucion | None = None          # asignación en el escenario desfavorable
+    metricas_p90: dict = field(default_factory=dict)
+    robusto: bool = False                                 # sin déficit en P90
 
 
 class AgenteDeliberativo(Agente):
+    """Simula estrategias de operación y asigna la energía por alimentador.
+
+    Cada estrategia se evalúa en dos escenarios de demanda:
+      P50 -> pronóstico central de D
+      P90 -> desfavorable: demanda P90 y renovables P10
+    Una estrategia es robusta si no deja déficit en P90."""
+
     def __init__(self, *a, red: RedDistribucion, fallar: bool = False, **k):
         super().__init__(*a, **k)
         self.red = red
         self.fallar = fallar
 
-    # -- Movimiento de carga flexible (energía constante, respeta la capacidad)
-    def _mover(self, esc, cargas, flex_rest, donantes, receptores, pesos, intensidad):
-        cap_util = 0.90 * esc.capacidad_kw          # deja 10 % de margen en receptores
-        holgura = np.array([max(0.0, cap_util + esc.renovable[h] - esc.demanda[h]) for h in receptores])
-        if holgura.sum() <= 0:
-            return
+    # -- Pronósticos del día con la condición de la red
+    def _contexto(self, analisis: dict, cond: dict) -> Contexto:
+        bc, br = analisis["bandas_cargas"], analisis["bandas_renovables"]
+        c50, c10, c90, r50, r10, r90 = {}, {}, {}, {}, {}, {}
+        for c in self.red.cargas:
+            f = factor_demanda(cond, c.tipo)
+            c50[c.nombre] = analisis["pronostico_cargas"][c.nombre] * f
+            c10[c.nombre] = bc[c.nombre]["p10"] * f
+            c90[c.nombre] = bc[c.nombre]["p90"] * f
+        for r in self.red.renovables:
+            f = factor_renovable(cond, r.tipo)
+            r50[r.nombre] = np.clip(analisis["pronostico_renovables"][r.nombre] * f, 0, r.capacidad_kw)
+            r10[r.nombre] = np.clip(br[r.nombre]["p10"] * f, 0, r.capacidad_kw)
+            r90[r.nombre] = np.clip(br[r.nombre]["p90"] * f, 0, r.capacidad_kw)
+        fs, fa = factores_capacidad(cond)
+        return Contexto(c50, c10, c90, r50, r10, r90, limites_red(self.red, fs, fa),
+                        self.red.vector_tarifas())
+
+    def _metricas(self, d: Distribucion, cargas: dict, desplazamientos: dict,
+                  demanda_original_kwh: float) -> dict:
+        tipo = {c.nombre: c.tipo for c in self.red.cargas}
+
+        def por_tipo(valores: dict) -> dict:
+            out = {}
+            for n, v in valores.items():
+                kwh = float(np.sum(v))
+                if kwh >= 0.05:
+                    out[tipo[n]] = round(out.get(tipo[n], 0.0) + kwh, 1)
+            return out
+        D = d.total("demanda")
+        usada = d.total("renovable_usada")
+        no_serv = d.total("no_servido")
+        recorte = float(d.total("recorte").sum())
+        desplazado = float(sum(desplazamientos.values()))
+        margen_se = float(d.margen_subestacion_pct.min())
+        return {
+            "demanda_kwh": round(float(D.sum()), 1),
+            "renovable_usada_kwh": round(float(usada.sum()), 1),
+            "renovable_desperdiciada_kwh": round(float(d.total("renovable_desperdiciada").sum()), 1),
+            "renovable_pct": round(float(usada.sum() / max(D.sum(), 1e-6) * 100), 2),
+            "convencional_kwh": round(float(d.total("convencional").sum()), 1),
+            "perdidas_kwh": round(float(d.total("perdidas").sum()), 1),
+            "importacion_subestacion_kwh": round(float(d.importacion_subestacion.sum()), 1),
+            "pico_convencional_kw": round(float(d.requerido_subestacion.max()), 1),
+            "margen_min_pct": round(margen_se, 2) + 0.0,       # + 0.0 evita mostrar "-0.0"
+            "margen_red_min_pct": round(min([margen_se] + [float(d.margen_pct[k].min()) for k in d.claves]), 2) + 0.0,
+            "utilizacion_max_pct": d.utilizacion_max_pct(),
+            "deficit_kwh": round(float(no_serv.sum()), 1),
+            "deficit_previo_kwh": round(float(d.total("deficit").sum()), 1),
+            "horas_deficit": [int(h) for h in np.where(no_serv > 0.05)[0]],
+            "costo_mxn": round(float(d.total("costo").sum()), 2),
+            "desplazado_kwh": round(desplazado, 1),
+            "desplazado_pct": round(desplazado / demanda_original_kwh * 100, 2),
+            "suspendido_kwh": round(recorte, 1),          # nombre histórico: hoy es recorte parcial
+            "recorte_kwh": round(recorte, 1),
+            "recorte_por_carga_kwh": {n: round(float(v.sum()), 1) for n, v in d.recorte_por_carga.items()
+                                      if v.sum() >= 0.05},
+            "recorte_por_tipo_kwh": por_tipo(d.recorte_por_carga),
+            "no_servido_por_tipo_kwh": por_tipo(d.no_servido_por_carga),
+            "demanda_por_tipo_kwh": por_tipo(cargas),
+            "desplazado_por_tipo_kwh": por_tipo(desplazamientos),
+            "alimentadores": d.resumen(),
+        }
+
+    def _evaluar(self, esc: Escenario, ctx: Contexto, demanda_original_kwh: float):
+        """Asigna la energía del escenario en P50 y en P90 y calcula sus métricas."""
+        plan = esc.recorte or None
+        d50 = asignar(self.red, esc.cargas, ctx.renovables, ctx.limites, ctx.tarifas, recorte_fijo=plan)
+        c90 = {n: np.clip(ctx.cargas_p90[n] + esc.cargas[n] - ctx.cargas[n], 0, None) for n in esc.cargas}
+        d90 = asignar(self.red, c90, ctx.renovables_p10, ctx.limites, ctx.tarifas, recorte_fijo=plan)
+        esc.distribucion, esc.distribucion_p90 = d50, d90
+        esc.metricas = self._metricas(d50, esc.cargas, esc.desplazamientos, demanda_original_kwh)
+        esc.metricas_p90 = self._metricas(d90, c90, esc.desplazamientos, demanda_original_kwh)
+        esc.robusto = esc.metricas_p90["deficit_kwh"] == 0
+        esc.metricas.update({
+            "robusto": esc.robusto,
+            "deficit_p90_kwh": esc.metricas_p90["deficit_kwh"],
+            "margen_red_min_p90_pct": esc.metricas_p90["margen_red_min_pct"],
+            "base_planificacion": esc.base_planificacion,
+            "deficit_planificado_kwh": esc.metricas["deficit_previo_kwh"],
+        })
+        esc.demanda = d50.total("demanda") - d50.total("recorte")
+        esc.suspensiones = [(h, n, round(float(v[h]), 1)) for n, v in d50.recorte_por_carga.items()
+                            for h in range(24) if v[h] >= 0.05]
+
+    # -- Movimiento de carga flexible (energía constante por carga, respeta capacidades)
+    def _mover(self, esc, ctx, flex_rest, donantes, receptores, pesos, intensidad):
+        no_criticas = [c for c in self.red.cargas if not c.critica]
+        cargas = ctx.cargas
         oferta = {h: intensidad * flex_rest[h] for h in donantes}
         total = sum(oferta.values())
         if total <= 0:
             return
+        # Qué fracción del movimiento aporta cada carga (y por tanto cada alimentador)
+        partes = {}
+        for h in donantes:
+            den = sum(c.desplazable * cargas[c.nombre][h] for c in no_criticas)
+            partes[h] = {c.nombre: c.desplazable * cargas[c.nombre][h] / den if den > 0 else 0.0
+                         for c in no_criticas}
+        cuota = {}
+        for c in no_criticas:
+            k = self.red.alimentador(c.alimentador).clave
+            cuota[k] = cuota.get(k, 0.0) + sum(oferta[h] * partes[h][c.nombre] for h in donantes) / total
+
+        # Holgura en los receptores: 10 % de margen en la subestación y en cada alimentador
+        demanda = sum(esc.cargas.values())
+        holgura = 0.90 * ctx.limites.subestacion_kw + esc.renovable - demanda
+        for k, q in cuota.items():
+            if q <= 1e-9:
+                continue
+            dk = sum(esc.cargas[c.nombre] for c in self.red.cargas_de(k))
+            rk = sum((ctx.renovables[r.nombre] for r in self.red.renovables_de(k)), np.zeros(24))
+            holgura = np.minimum(holgura, (0.90 * ctx.limites.entregable_kw(k) + rk - dk) / q)
+        holgura = np.clip(holgura[receptores], 0, None)
+        if holgura.sum() <= 0:
+            return
         movible = min(total, holgura.sum())
         f = movible / total
+        movido = {}
         for h in donantes:
             quitar = oferta[h] * f
-            for c in self.red.cargas:          # reparto por carga (para las acciones)
-                if not c.critica and flex_rest[h] > 0:
-                    parte = c.desplazable * cargas[c.nombre][h] / sum(
-                        x.desplazable * cargas[x.nombre][h] for x in self.red.cargas if not x.critica)
-                    esc.desplazamientos[c.nombre] = esc.desplazamientos.get(c.nombre, 0) + quitar * parte
-            esc.demanda[h] -= quitar
+            if flex_rest[h] > 0:
+                for c in no_criticas:
+                    x = quitar * partes[h][c.nombre]
+                    esc.desplazamientos[c.nombre] = esc.desplazamientos.get(c.nombre, 0) + x
+                    esc.cargas[c.nombre][h] -= x
+                    movido[c.nombre] = movido.get(c.nombre, 0) + x
             flex_rest[h] -= quitar
         reparto = np.minimum(holgura, movible * np.array(pesos) / np.sum(pesos))
         faltante = movible - reparto.sum()
@@ -287,14 +461,19 @@ class AgenteDeliberativo(Agente):
             extra = np.minimum(libre, faltante * libre / libre.sum())
             reparto += extra
             faltante -= extra.sum()
+        reparto *= movible / reparto.sum()          # cada carga conserva su energía
         for h, v in zip(receptores, reparto):
-            esc.demanda[h] += v
+            for n, kwh in movido.items():
+                esc.cargas[n][h] += v * kwh / movible
         esc.movimientos.append((list(donantes), list(receptores), round(float(movible), 1)))
 
-    def _simular(self, id_, nombre, estrategia, intensidad, cargas, R, cap):
+    def _simular(self, id_, nombre, estrategia, intensidad, ctx: Contexto):
+        cargas = ctx.cargas
         D0 = sum(cargas.values())
+        R = sum(ctx.renovables.values())
         flex = sum(c.desplazable * cargas[c.nombre] for c in self.red.cargas if not c.critica)
-        esc = Escenario(id_, nombre, estrategia, intensidad, D0.copy(), R, cap, self.red.vector_tarifas())
+        esc = Escenario(id_, nombre, estrategia, intensidad, D0.copy(), R, ctx.limites.subestacion_kw,
+                        ctx.tarifas, cargas={n: v.copy() for n, v in cargas.items()})
         flex_rest = flex.copy()
         if estrategia in ("renovable", "combinada"):
             neta = D0 - R
@@ -302,32 +481,34 @@ class AgenteDeliberativo(Agente):
             receptores = [h for h in range(24)
                           if R.max() > 0 and R[h] > 0.3 * R.max() and h not in donantes]
             if receptores:
-                self._mover(esc, cargas, flex_rest, donantes, receptores,
+                self._mover(esc, ctx, flex_rest, donantes, receptores,
                             [R[h] for h in receptores], intensidad)
         if estrategia in ("tarifa", "combinada"):
             donantes = [h for h in range(24) if self.red.periodo_tarifario(h) == "punta"]
             receptores = [h for h in range(24) if self.red.periodo_tarifario(h) == "base"]
-            self._mover(esc, cargas, flex_rest, donantes, receptores, [1] * len(receptores), intensidad)
-        esc.calcular(D0.sum())
+            self._mover(esc, ctx, flex_rest, donantes, receptores, [1] * len(receptores), intensidad)
+        self._evaluar(esc, ctx, float(D0.sum()))
         return esc
 
-    def _contingencia(self, base: Escenario, cargas):
-        """Regla 1: suspensiones controladas de cargas no críticas por prioridad."""
-        esc = Escenario(f"{base.id}-CONT", f"Contingencia: suspensión controlada sobre {base.id}",
-                        "contingencia", base.intensidad, base.demanda.copy(), base.renovable,
-                        base.capacidad_kw, base.tarifas, dict(base.desplazamientos), list(base.movimientos))
-        D0 = sum(cargas.values())
-        orden = sorted([c for c in self.red.cargas if not c.critica], key=lambda c: c.prioridad_corte)
-        for h in range(24):
-            falta = esc.demanda[h] - esc.renovable[h] - esc.capacidad_kw
-            for c in orden:
-                if falta <= 0:
-                    break
-                kw = cargas[c.nombre][h] * esc.demanda[h] / D0[h]
-                esc.suspensiones.append((h, c.nombre, round(float(kw), 1)))
-                esc.demanda[h] -= kw
-                falta -= kw
-        esc.calcular(D0.sum())
+    def _contingencia(self, base: Escenario, ctx: Contexto, banda: str) -> Escenario:
+        """Regla 1: recorte PARCIAL de cargas no críticas por prioridad, solo los kW
+        necesarios. Con banda P90 el plan cubre también el escenario desfavorable."""
+        if banda == "P90":
+            plan_c = {n: np.clip(ctx.cargas_p90[n] + base.cargas[n] - ctx.cargas[n], 0, None)
+                      for n in base.cargas}
+            plan_r = ctx.renovables_p10
+            id_, nombre = (f"{base.id}-CONT-P90",
+                           f"Contingencia robusta: recorte parcial sobre {base.id} planificado con la banda P90")
+        else:
+            plan_c, plan_r = base.cargas, ctx.renovables
+            id_, nombre = f"{base.id}-CONT", f"Contingencia: recorte parcial sobre {base.id}"
+        plan = asignar(self.red, plan_c, plan_r, ctx.limites, ctx.tarifas, recortar=True)
+        esc = Escenario(id_, nombre, "contingencia", base.intensidad, base.demanda.copy(), base.renovable,
+                        base.capacidad_kw, base.tarifas, dict(base.desplazamientos), list(base.movimientos),
+                        cargas={n: v.copy() for n, v in base.cargas.items()},
+                        recorte=plan.recorte_por_carga, base_planificacion=banda)
+        self._evaluar(esc, ctx, float(sum(ctx.cargas.values()).sum()))
+        esc.metricas["deficit_planificado_kwh"] = round(float(plan.total("deficit").sum()), 1)
         return esc
 
     def procesar(self, msg: Mensaje):
@@ -336,15 +517,10 @@ class AgenteDeliberativo(Agente):
             raise RuntimeError("el simulador de escenarios no respondió (falla simulada)")
 
         analisis = self.pizarra.leer("analisis")
-        cond = CONDICIONES[msg.contenido["condicion"]]
+        cond = resolver(msg.contenido["condicion"], **msg.contenido.get("parametros", {}))
         excluir = set(msg.contenido.get("excluir", []))
         ronda = msg.contenido.get("ronda", 0)
-
-        cargas = {}
-        for c in self.red.cargas:
-            cargas[c.nombre] = analisis["pronostico_cargas"][c.nombre] * cond["demanda"].get(c.tipo, 1.0)
-        R = sum(analisis["pronostico_renovables"].values())
-        cap = self.red.capacidad_convencional_kw * cond["capacidad"]
+        ctx = self._contexto(analisis, cond)
 
         catalogo = [("S0", "Operación actual (sin cambios)", "base")]
         catalogo += [("S1", "Prioridad renovable: mover carga flexible a horas solares", "renovable"),
@@ -359,16 +535,22 @@ class AgenteDeliberativo(Agente):
                     continue
                 sid = id_ if intensidad == 1 else f"{id_}-{int(intensidad * 100)}%"
                 nom = nombre if intensidad == 1 else f"{nombre} (conservador {int(intensidad * 100)} %)"
-                escenarios.append(self._simular(sid, nom, estr, intensidad, cargas, R, cap))
+                escenarios.append(self._simular(sid, nom, estr, intensidad, ctx))
 
         if all(e.metricas["deficit_kwh"] > 0 for e in escenarios):
             mejor = min(escenarios, key=lambda e: e.metricas["deficit_kwh"])
-            escenarios.append(self._contingencia(mejor, cargas))
+            escenarios.append(self._contingencia(mejor, ctx, "P50"))
+            escenarios.append(self._contingencia(mejor, ctx, "P90"))
         escenarios = [e for e in escenarios if e.id not in excluir]
 
+        cap = ctx.limites.subestacion_kw
         self.pizarra.escribir("E", "escenarios", {"lista": escenarios, "condicion": cond["desc"],
-                                                  "capacidad_kw": cap})
-        self.log(f"{len(escenarios)} escenarios simulados ({cond['desc']}, capacidad {cap:,.0f} kW)")
+                                                  "condicion_id": cond["id"], "parametros": parametros(cond),
+                                                  "capacidad_kw": cap, "limites": ctx.limites,
+                                                  "contexto": ctx})
+        robustos = sum(e.robusto for e in escenarios)
+        self.log(f"{len(escenarios)} escenarios simulados por alimentador en P50 y P90 "
+                 f"({cond['desc']}, capacidad {cap:,.0f} kW); {robustos} robustos ante P90")
         self.enviar("F", P.PROPOSE, {"clave": "escenarios", "n": len(escenarios)}, msg.conversacion)
 
 
@@ -377,21 +559,41 @@ def _nivel(valor: int) -> str:
     return "bajo" if valor <= 6 else "medio" if valor <= 12 else "alto" if valor <= 19 else "crítico"
 
 
+_GRUPOS = [   # ISO/IEC 42005: grupos de interés por tipo de carga
+    ("Usuarios residenciales y comerciales", ("residencial", "comercial")),
+    ("Industria y servicios públicos", ("industrial", "servicio")),
+]
+
+
 class EvaluadorISO(Agente):
     def __init__(self, *a, fallar: bool = False, **k):
         super().__init__(*a, **k)
         self.fallar = fallar
 
-    def _riesgos(self, m: dict, mape: float | None) -> list[dict]:
+    def _riesgos(self, esc, mape: float | None) -> list[dict]:
         """ISO/IEC 23894: identificar, analizar (probabilidad x impacto) y tratar."""
-        margen = m["margen_min_pct"]
-        p_cap = 1 if margen >= 20 else 2 if margen >= 10 else 3 if margen >= 5 else 4 if margen >= 0 else 5
+        m, m90 = esc.metricas, esc.metricas_p90
+        # Insuficiencia: la probabilidad se estima con el escenario desfavorable P90
+        margen90 = m90["margen_red_min_pct"]
+        p_cap = (5 if m90["deficit_kwh"] > 0 else 1 if margen90 >= 20 else 2 if margen90 >= 10
+                 else 3 if margen90 >= 5 else 4)
+        # Saturación: el alimentador o transformador de BT más cargado (P50, tras las medidas)
+        alims = m["alimentadores"]
+        k_max = max(alims, key=lambda k: alims[k]["utilizacion_max_pct"])
+        u = alims[k_max]["utilizacion_max_pct"]
+        p_sat = 5 if u > 100.05 else 4 if u >= 95 else 3 if u >= 90 else 2 if u >= 80 else 1
+        margen = m["margen_red_min_pct"]
         e = mape if mape is not None else 20
         p_pron = 1 if e < 5 else 2 if e < 10 else 3 if e < 15 else 4 if e < 25 else 5
         d = m["desplazado_pct"]
         riesgos = [
             {"riesgo": "Insuficiencia de capacidad", "prob": p_cap, "impacto": 5,
-             "tratamiento": "Reservar margen y vigilar la carga del transformador"},
+             "tratamiento": f"Reservar margen y vigilar la carga del transformador (banda P90: margen "
+                            f"{margen90} %" + (f", déficit {m90['deficit_kwh']:,.0f} kWh)" if m90["deficit_kwh"] else ")")},
+            {"riesgo": "Saturación de alimentador", "prob": p_sat,
+             "impacto": 5 if alims[k_max]["carga_critica"] else 4,
+             "tratamiento": f"Vigilar la cabecera y los transformadores de {k_max} (uso máximo {u} %); "
+                            "transferir carga o reconfigurar si se acerca al límite"},
             {"riesgo": "Error de pronóstico de demanda/renovables", "prob": p_pron,
              "impacto": 4 if margen < 10 else 3,
              "tratamiento": "Revisar el pronóstico con datos en tiempo real"},
@@ -400,9 +602,10 @@ class EvaluadorISO(Agente):
              "impacto": 1 if d < 2 else 2 if d < 5 else 3 if d < 10 else 4,
              "tratamiento": "Desplazar solo cargas no críticas y notificar con anticipación"},
         ]
-        if m["suspendido_kwh"] > 0:
-            riesgos.append({"riesgo": "Suspensión controlada del servicio", "prob": 5, "impacto": 4,
-                            "tratamiento": "Cargas críticas protegidas; requiere autorización del operador"})
+        if m["recorte_kwh"] > 0:
+            riesgos.append({"riesgo": "Recorte controlado del servicio", "prob": 5, "impacto": 4,
+                            "tratamiento": f"Recorte parcial de {m['recorte_kwh']:,.0f} kWh por prioridad; cargas "
+                                           "críticas protegidas; requiere autorización del operador"})
         for r in riesgos:
             r["nivel"] = r["prob"] * r["impacto"]
             r["categoria"] = _nivel(r["nivel"])
@@ -410,23 +613,39 @@ class EvaluadorISO(Agente):
 
     @staticmethod
     def _impactos(m: dict, base: dict) -> list[dict]:
-        """ISO/IEC 42005: efectos sobre los grupos de interés."""
+        """ISO/IEC 42005: efectos sobre los grupos de interés con los kWh reales
+        desplazados y recortados a cada grupo."""
         ahorro = base["costo_mxn"] - m["costo_mxn"]
+        rec, dem, desp = m["recorte_por_tipo_kwh"], m["demanda_por_tipo_kwh"], m["desplazado_por_tipo_kwh"]
 
         def efecto(cond_pos, cond_neg):
             return "positivo" if cond_pos else "negativo" if cond_neg else "neutral"
-        return [
-            {"grupo": "Usuarios residenciales y comerciales",
-             "efecto": efecto(False, m["desplazado_kwh"] > 0 or m["suspendido_kwh"] > 0),
-             "detalle": f"{m['desplazado_kwh']:,.0f} kWh de consumo flexible cambian de horario"
-                        + (f"; {m['suspendido_kwh']:,.0f} kWh suspendidos" if m["suspendido_kwh"] else "")},
-            {"grupo": "Cargas críticas (hospital)", "efecto": "positivo" if m["suspendido_kwh"] else "neutral",
-             "detalle": "Suministro garantizado (nunca se desplaza ni se suspende)"},
+        impactos = []
+        for grupo, tipos in _GRUPOS:
+            kwh = round(sum(rec.get(t, 0.0) for t in tipos), 1)
+            movido = sum(desp.get(t, 0.0) for t in tipos)
+            demanda = sum(dem.get(t, 0.0) for t in tipos)
+            pct = round(kwh / demanda * 100, 1) if demanda else 0.0
+            detalle = f"{movido:,.0f} kWh de consumo flexible cambian de horario"
+            if kwh:
+                detalle += f"; {kwh:,.0f} kWh recortados ({pct} % de su demanda del día)"
+            impactos.append({"grupo": grupo, "efecto": efecto(False, movido > 0.5 or kwh > 0),
+                             "kwh_recortados": kwh, "pct_demanda_recortada": pct, "detalle": detalle})
+        critica_ns = m["no_servido_por_tipo_kwh"].get("critica", 0.0)
+        impactos += [
+            {"grupo": "Cargas críticas (hospital)",
+             "efecto": "negativo" if critica_ns else "positivo" if m["recorte_kwh"] else "neutral",
+             "kwh_recortados": round(m["recorte_por_tipo_kwh"].get("critica", 0.0), 1),
+             "pct_demanda_recortada": 0.0,
+             "detalle": (f"{critica_ns:,.0f} kWh sin servir: la red no alcanza ni para las cargas críticas"
+                         if critica_ns else "0 kWh recortados: suministro garantizado (nunca se desplaza ni se recorta)")},
             {"grupo": "Operador de la red", "efecto": efecto(ahorro > 0, ahorro < 0),
-             "detalle": f"Costo {m['costo_mxn']:,.0f} MXN ({_ahorro(ahorro)} frente a la operación actual)"},
+             "detalle": f"Costo {m['costo_mxn']:,.0f} MXN ({_ahorro(ahorro)} frente a la operación actual); "
+                        f"pérdidas técnicas {m['perdidas_kwh']:,.0f} kWh"},
             {"grupo": "Medio ambiente", "efecto": efecto(m["renovable_desperdiciada_kwh"] < base["renovable_desperdiciada_kwh"], False),
              "detalle": f"{m['renovable_pct']} % de la demanda cubierta con renovables"},
         ]
+        return impactos
 
     def procesar(self, msg: Mensaje):
         if self.fallar:
@@ -439,7 +658,7 @@ class EvaluadorISO(Agente):
         base = next((e.metricas for e in paquete["lista"] if e.id == "S0"), None)
         evaluados = []
         for esc in paquete["lista"]:
-            riesgos = self._riesgos(esc.metricas, mape)
+            riesgos = self._riesgos(esc, mape)
             riesgo_max = max(r["nivel"] for r in riesgos)
             evaluados.append({
                 "id": esc.id,
@@ -447,22 +666,36 @@ class EvaluadorISO(Agente):
                 "riesgo_max": riesgo_max,
                 "categoria_max": _nivel(riesgo_max),
                 "impactos": self._impactos(esc.metricas, base or esc.metricas),
-                "aceptable": riesgo_max <= TOLERANCIA_RIESGO and esc.metricas["suspendido_kwh"] == 0,
-                "requiere_escalamiento": esc.metricas["suspendido_kwh"] > 0,
+                "aceptable": riesgo_max <= TOLERANCIA_RIESGO and esc.metricas["recorte_kwh"] == 0,
+                "requiere_escalamiento": esc.metricas["recorte_kwh"] > 0,
+                "robusto": esc.robusto,
+                "deficit_p90_kwh": esc.metricas_p90["deficit_kwh"],
             })
+        cob = analisis.get("cobertura_bandas") or {}
+        cob_pct = cob.get("pct")
+        alerta_cal = cob_pct is not None and cob_pct < COBERTURA_MINIMA
+        acciones = []
+        if mape and mape > MAPE_REENTRENAR:
+            acciones.append("Re-entrenar / revisar el modelo de aprendizaje")
+        if alerta_cal:
+            acciones.append("Recalibrar las bandas P10-P90 (cobertura por debajo del mínimo)")
         trazabilidad = {   # ISO/IEC 5338: ciclo de vida, monitoreo y registro
             "version_modelo": VERSION_MODELO,
             "etapa_ciclo_vida": "Operación y monitoreo",
             "huella_analisis": huella({k: analisis[k] for k in ("consumo_total_kwh", "pico_kw", "horas_pico")}),
             "mape_pct": mape,
             "alerta_deriva": mape is not None and mape > MAPE_REENTRENAR,
-            "accion_monitoreo": ("Re-entrenar / revisar el modelo de aprendizaje" if mape and mape > MAPE_REENTRENAR
-                                 else "Sin acción: desempeño dentro de tolerancia"),
+            "cobertura_bandas_pct": cob_pct,
+            "cobertura_nominal_pct": cob.get("nominal_pct", COBERTURA_NOMINAL),
+            "lecturas_validacion_bandas": cob.get("lecturas", 0),
+            "alerta_calibracion_bandas": alerta_cal,
+            "accion_monitoreo": "; ".join(acciones) or "Sin acción: desempeño dentro de tolerancia",
         }
         self.pizarra.escribir("F", "evaluacion", {"escenarios": evaluados, "trazabilidad": trazabilidad})
         ok = sum(e["aceptable"] for e in evaluados)
         self.log(f"{len(evaluados)} escenarios evaluados, {ok} dentro de tolerancia "
-                 f"(riesgo ≤ {TOLERANCIA_RIESGO})")
+                 f"(riesgo ≤ {TOLERANCIA_RIESGO}); cobertura de bandas "
+                 f"{'sin datos' if cob_pct is None else f'{cob_pct} %'}")
         self.enviar("C", P.INFORM, {"clave": "evaluacion", "aceptables": ok}, msg.conversacion)
 
 
@@ -471,7 +704,8 @@ class AgenteMeta(Agente):
     """Supervisor: mantiene los objetivos, enruta y aplica las reglas de decisión.
 
     Regla 1 Prioridad de suministro y contingencias (sin déficit; si no hay
-            alternativa, suspensiones controladas con supervisión humana)
+            alternativa, recorte parcial controlado con supervisión humana).
+            Entre las viables se prefieren las robustas (sin déficit en P90).
     Regla 2 Máximo aprovechamiento de renovables
     Regla 3 Menor costo operativo (solo con suministro garantizado)
     Regla 4 Validación humana de toda recomendación (trazable, ISO 23894/42005)
@@ -479,9 +713,10 @@ class AgenteMeta(Agente):
     OBJETIVOS = ["Suministro continuo sin déficit", f"Margen de capacidad ≥ {int(MARGEN_OBJETIVO * 100)} %",
                  "Maximizar renovables", "Minimizar costo operativo"]
 
-    def __init__(self, *a, condicion: str, max_rechazos: int = 3, **k):
+    def __init__(self, *a, condicion: str, parametros: dict | None = None, max_rechazos: int = 3, **k):
         super().__init__(*a, **k)
         self.condicion = condicion
+        self.parametros = parametros or {}      # p. ej. {"alimentador": "A2"} o {"crecimiento_pct": 20}
         self.max_rechazos = max_rechazos
         self.rechazos = 0
         self.excluidos: list[str] = []
@@ -493,8 +728,8 @@ class AgenteMeta(Agente):
         self.enviar(nodo, P.REQUEST, contenido, conv)
 
     def _deliberar(self, conv: str):
-        self._solicitar("E", {"condicion": self.condicion, "excluir": self.excluidos,
-                              "ronda": self.rechazos}, conv)
+        self._solicitar("E", {"condicion": self.condicion, "parametros": self.parametros,
+                              "excluir": self.excluidos, "ronda": self.rechazos}, conv)
 
     def procesar(self, msg: Mensaje):
         conv = msg.conversacion
@@ -535,28 +770,33 @@ class AgenteMeta(Agente):
         if not candidatos:
             return self._escalar(conv, "No quedan escenarios alternativos")
 
-        # Regla 1: suministro garantizado
+        # Regla 1: suministro garantizado (en el pronóstico central P50)
         viables = [i for i in candidatos if escenarios[i].metricas["deficit_kwh"] == 0]
         modo = "normal"
         if not viables:
             viables = [i for i in candidatos if escenarios[i].estrategia == "contingencia"] or candidatos
             modo = "contingencia"
         aceptables = [i for i in viables if evaluacion[i]["aceptable"]] or viables
-        if self.excluidos and modo == "normal":
+        rech = self.pizarra.leer("decision") if self.excluidos else None
+        if rech and rech.get("escenario"):
             # Tras un rechazo se buscan medidas alternas menos invasivas que la rechazada
-            rech = self.pizarra.leer("decision")
-            limite = rech.get("desplazado_kwh") if rech else None
+            campo = "desplazado_kwh" if modo == "normal" else "recorte_kwh"
+            limite = rech.get(campo)
             menos = [i for i in aceptables
-                     if limite is not None and escenarios[i].metricas["desplazado_kwh"] < limite]
+                     if limite is not None and escenarios[i].metricas[campo] < limite]
             aceptables = menos or aceptables
         if modo == "normal" and not any(evaluacion[i]["aceptable"] for i in viables):
             modo = "riesgo fuera de tolerancia"
+        # Robustez: se prefieren las que tampoco tienen déficit en la banda desfavorable P90
+        robustos = [i for i in aceptables if escenarios[i].robusto]
+        hay_robusta = bool(robustos)
+        aceptables = robustos or aceptables
 
         # Reglas 2 y 3 (orden lexicográfico) + menor riesgo e impacto al usuario
         def clave(i):
             m = escenarios[i].metricas
             return (m["deficit_kwh"], -round(m["renovable_pct"], 1), round(m["costo_mxn"], -1),
-                    evaluacion[i]["riesgo_max"], m["desplazado_kwh"])
+                    evaluacion[i]["riesgo_max"], m["desplazado_kwh"], m["recorte_kwh"])
         elegido = min(aceptables, key=clave)
         esc = escenarios[elegido]
         base = escenarios.get("S0") or esc
@@ -564,16 +804,34 @@ class AgenteMeta(Agente):
         if esc.estrategia == "contingencia":
             modo = "contingencia"
         m = esc.metricas
-        if m["suspendido_kwh"] > 0:
-            r1 = (f"Regla 1: la demanda supera la capacidad disponible; se cubre con suspensiones controladas "
-                  f"de cargas no críticas ({m['suspendido_kwh']:,.0f} kWh), protegiendo las cargas críticas.")
+        if m["recorte_kwh"] > 0:
+            cargas = ", ".join(f"{n} {kwh:,.0f} kWh" for n, kwh in
+                               sorted(m["recorte_por_carga_kwh"].items(), key=lambda x: -x[1]))
+            r1 = (f"Regla 1: la demanda supera la capacidad disponible ({m['deficit_planificado_kwh']:,.0f} kWh de "
+                  f"déficit en la banda {esc.base_planificacion}); se recomienda un recorte parcial de "
+                  f"{m['recorte_kwh']:,.0f} kWh solo en cargas no críticas, por prioridad ({cargas}). "
+                  "Las cargas críticas conservan el 100 % de su suministro.")
+            if esc.base_planificacion == "P90":
+                r1 += (f" Con el pronóstico central bastarían {m['deficit_previo_kwh']:,.0f} kWh; el excedente "
+                       "protege la estabilidad si la demanda llega a P90.")
             r3 = "Regla 3: no aplica, el suministro no está garantizado (prevalece la estabilidad de la red)."
         else:
-            r1 = f"Regla 1: sin déficit de suministro (margen mínimo {m['margen_min_pct']} %)."
+            r1 = (f"Regla 1: sin déficit de suministro (margen mínimo {m['margen_min_pct']} % en la subestación, "
+                  f"{m['margen_red_min_pct']} % en la red).")
             if base.metricas["deficit_kwh"] > 0 and base is not esc:
                 r1 += f" Sin cambios habría {base.metricas['deficit_kwh']:,.0f} kWh de déficit."
             r3 = (f"Regla 3: costo {m['costo_mxn']:,.0f} MXN "
                   f"({_ahorro(base.metricas['costo_mxn'] - m['costo_mxn'])} frente a la operación actual).")
+        alims = "; ".join(f"{k} margen {a['margen_min_pct']} %, uso máx. {a['utilizacion_max_pct']} %"
+                          + (f", recorte {a['recorte_kwh']:,.0f} kWh" if a["recorte_kwh"] else "")
+                          for k, a in m["alimentadores"].items())
+        if esc.robusto:
+            robustez = ("Robustez: sin déficit en el escenario desfavorable P90 (demanda P90, renovables P10); "
+                        f"margen mínimo P90 {m['margen_red_min_p90_pct']} %.")
+        else:
+            robustez = (f"Robustez: ninguna estrategia viable es robusta; en el escenario desfavorable P90 quedarían "
+                        f"{m['deficit_p90_kwh']:,.0f} kWh de déficit. Se trata como riesgo (ISO/IEC 23894) y "
+                        "debe vigilarse la demanda en tiempo real.")
         justificacion = [
             r1,
             f"Regla 2: renovables cubren {m['renovable_pct']} % de la demanda "
@@ -582,14 +840,18 @@ class AgenteMeta(Agente):
             f"Regla 4: riesgo máximo {evaluacion[elegido]['riesgo_max']} "
             f"({evaluacion[elegido]['categoria_max']}); queda sujeto a aprobación humana"
             + (" y requiere autorización expresa del operador." if evaluacion[elegido]["requiere_escalamiento"] else "."),
+            robustez,
+            f"Distribución por alimentador: {alims}; pérdidas técnicas {m['perdidas_kwh']:,.0f} kWh.",
         ]
-        if esc.metricas["margen_min_pct"] < MARGEN_OBJETIVO * 100 and esc.metricas["deficit_kwh"] == 0:
+        if m["margen_red_min_pct"] < MARGEN_OBJETIVO * 100 and m["deficit_kwh"] == 0:
             justificacion.append("Aviso: el margen queda por debajo del objetivo; vigilar la operación.")
         decision = {"escenario": elegido, "modo": modo, "justificacion": justificacion,
-                    "desplazado_kwh": esc.metricas["desplazado_kwh"],
+                    "desplazado_kwh": m["desplazado_kwh"], "recorte_kwh": m["recorte_kwh"],
+                    "robusto": esc.robusto, "hay_alternativa_robusta": hay_robusta,
                     "rechazos_previos": self.rechazos, "alternativas_evaluadas": len(candidatos)}
         self.pizarra.escribir("C", "decision", decision)
-        self.log(f"selecciona {elegido} ({modo}) entre {len(candidatos)} alternativas")
+        self.log(f"selecciona {elegido} ({modo}{', robusta' if esc.robusto else ', no robusta'}) "
+                 f"entre {len(candidatos)} alternativas")
         self.enviar("G", P.PROPOSE, {"clave": "decision", "escenario": elegido}, conv)
 
     def _escalar(self, conv: str, motivo: str):
@@ -654,7 +916,8 @@ class AprobacionHumana(Agente):
         print(f"  PROPUESTA PARA APROBACIÓN  [{esc.id}] {esc.nombre}")
         print(f"  Modo: {decision['modo']} | Riesgo máximo: {ev['riesgo_max']} ({ev['categoria_max']})")
         print(f"  Costo: {m['costo_mxn']:,.0f} MXN | Renovables: {m['renovable_pct']} % | "
-              f"Desplazado: {m['desplazado_kwh']:,.0f} kWh | Suspendido: {m['suspendido_kwh']:,.0f} kWh")
+              f"Desplazado: {m['desplazado_kwh']:,.0f} kWh | Recorte parcial: {m['recorte_kwh']:,.0f} kWh | "
+              f"{'Robusta' if esc.robusto else 'No robusta'} ante P90")
         for j in decision["justificacion"]:
             print("   -", j)
         print("-" * 70)
@@ -681,6 +944,15 @@ class RecomendacionFinal(Agente):
         self.salida = salida
         self.reporte: dict | None = None
 
+    @staticmethod
+    def recorte_por_carga(esc: Escenario) -> dict[str, tuple[float, float, list[int]]]:
+        """carga -> (kWh recortados, kW máximos, horas), de mayor a menor energía."""
+        out = {}
+        for h, c, kw in esc.suspensiones:
+            kwh, kw_max, hs = out.get(c, (0.0, 0.0, []))
+            out[c] = (kwh + kw, max(kw_max, kw), hs + [h])
+        return dict(sorted(out.items(), key=lambda x: -x[1][0]))
+
     def _acciones(self, esc: Escenario) -> list[str]:
         acciones = []
         for origen, destino, kwh in esc.movimientos:
@@ -689,12 +961,9 @@ class RecomendacionFinal(Agente):
         for carga, kwh in sorted(esc.desplazamientos.items(), key=lambda x: -x[1]):
             if kwh >= 1:
                 acciones.append(f"  · {carga}: {kwh:,.0f} kWh")
-        if esc.suspensiones:
-            por_carga = {}
-            for h, c, kw in esc.suspensiones:
-                por_carga.setdefault(c, []).append(h)
-            for c, hs in por_carga.items():
-                acciones.append(f"Suspensión controlada de '{c}' en las {_horas(hs)} (cargas críticas protegidas)")
+        for c, (kwh, kw_max, hs) in self.recorte_por_carga(esc).items():
+            acciones.append(f"Recorte parcial de '{c}': {kwh:,.0f} kWh (máx. {kw_max:,.0f} kW) en las "
+                            f"{_horas(hs)} (cargas críticas protegidas)")
         if not acciones:
             acciones.append("Mantener la operación actual: no hay desplazamientos que reduzcan costo o riesgo")
         return acciones
@@ -714,6 +983,7 @@ class RecomendacionFinal(Agente):
             "fecha": datetime.now().isoformat(timespec="seconds"),
             "periodo_analizado": NOMBRE_PERIODO[self.periodo],
             "condicion_red": paquete["condicion"],
+            "parametros_condicion": paquete.get("parametros"),
             "estado": ("APROBADA" if aprobacion["aprobado"] else
                        "ESCALADA AL OPERADOR" if aprobacion.get("escalado") else "RECHAZADA"),
             "motivo_escalamiento": None if esc else decision["justificacion"],
@@ -724,6 +994,9 @@ class RecomendacionFinal(Agente):
             "recomendacion": None if esc is None else {
                 "escenario": esc.id, "nombre": esc.nombre, "modo": decision["modo"],
                 "acciones": self._acciones(esc), "metricas": esc.metricas,
+                "robusto": esc.robusto, "metricas_p90": esc.metricas_p90,
+                "recorte_por_carga": {c: {"kwh": round(kwh, 1), "kw_max": kw, "horas": hs}
+                                      for c, (kwh, kw, hs) in self.recorte_por_carga(esc).items()},
                 "justificacion": decision["justificacion"],
                 "evaluacion_iso": next(e for e in evaluacion["escenarios"] if e["id"] == esc.id),
             },
