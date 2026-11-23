@@ -186,6 +186,10 @@ En la carpeta `salida/` se generan cuatro archivos:
 | `web/` | App web / móvil (PWA): `index.html`, `estilos.css`, `app.js`, manifiesto, service worker e íconos del logotipo |
 | `mobile/` | App nativa (React Native + Expo): `app/` pantallas, `src/api` cliente tipado, `src/componentes`, pruebas en `__tests__/` |
 | `pruebas.py` | Pruebas de jerarquía, permisos, flujos, contingencia, fallas, API (incluidos token, salud, operador, listado, CORS y contrato con la app móvil) y los criterios de distribución y escenarios |
+| `pruebas_adversas.py` | Campaña de pruebas en escenarios adversos; defectos A1–A10 y B1–B3 como `@unittest.expectedFailure` ([informe](docs/pruebas_adversas/INFORME.md)) |
+| `evaluacion.py` | Indicadores de continuidad, eficiencia y costo (funciones puras sobre una `Distribucion`, un `Escenario` o un `Sistema`) |
+| `evaluar.py` | Campaña de evaluación de resultados, mejoras hipotéticas e informe ([informe](docs/evaluacion/INFORME.md)): `python evaluar.py` o `python evaluar.py --rapido` |
+| `pruebas_evaluacion.py` | Pruebas de los indicadores con casos calculados a mano |
 | `docs/capturas/` | Capturas de la app con una falla del alimentador A1 |
 
 ## Modelo de la red de distribución

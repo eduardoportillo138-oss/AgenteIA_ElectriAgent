@@ -11,3 +11,6 @@ mobile/coverage/
 # Salidas del modo rápido de pruebas_adversas.py (el informe usa las del modo completo)
 docs/pruebas_adversas/resultados_rapido.csv
 docs/pruebas_adversas/resumen_rapido.json
+
+# Salidas del modo rápido de evaluar.py (el informe usa las del modo completo)
+docs/evaluacion/rapido/
