@@ -1,0 +1,597 @@
+familia,escenario,periodo,semilla,propuesta,estado_final,I1,I2,I3,I4,I5,I6,I7,I8,I9,I10,I11,esperado,defecto,detalle,notas,comando
+F1,F1.alta-A1,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.alta-A1 --periodo 1d
+F1,F1.alta-A1,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1342 kWh, déficit S0 1404 kWh",python pruebas_adversas.py --caso F1.alta-A1 --periodo 1s
+F1,F1.alta-A1,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1384 kWh, déficit S0 1438 kWh",python pruebas_adversas.py --caso F1.alta-A1 --periodo 1m
+F1,F1.alta-A1,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1428 kWh, déficit S0 1428 kWh",python pruebas_adversas.py --caso F1.alta-A1 --periodo 6m
+F1,F1.alta-A1,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1285 kWh, déficit S0 1326 kWh",python pruebas_adversas.py --caso F1.alta-A1 --periodo 1a
+F1,F1.alta-A2,1d,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 8 kWh, déficit S0 827 kWh",python pruebas_adversas.py --caso F1.alta-A2 --periodo 1d
+F1,F1.alta-A2,1s,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 33 kWh, déficit S0 2100 kWh",python pruebas_adversas.py --caso F1.alta-A2 --periodo 1s
+F1,F1.alta-A2,1m,7,S3,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 2201 kWh",python pruebas_adversas.py --caso F1.alta-A2 --periodo 1m
+F1,F1.alta-A2,6m,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 49 kWh, déficit S0 2061 kWh",python pruebas_adversas.py --caso F1.alta-A2 --periodo 6m
+F1,F1.alta-A2,1a,7,S3,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 2070 kWh",python pruebas_adversas.py --caso F1.alta-A2 --periodo 1a
+F1,F1.calor+30,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1284 kWh, déficit S0 4316 kWh",python pruebas_adversas.py --caso F1.calor+30 --periodo 1d
+F1,F1.calor+30,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 6766 kWh, déficit S0 10701 kWh",python pruebas_adversas.py --caso F1.calor+30 --periodo 1s
+F1,F1.calor+30,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 7293 kWh, déficit S0 11211 kWh",python pruebas_adversas.py --caso F1.calor+30 --periodo 1m
+F1,F1.calor+30,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 7073 kWh, déficit S0 10992 kWh",python pruebas_adversas.py --caso F1.calor+30 --periodo 6m
+F1,F1.calor+30,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 7142 kWh, déficit S0 11051 kWh",python pruebas_adversas.py --caso F1.calor+30 --periodo 1a
+F1,F1.crec+100,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 4811 kWh, déficit S0 8925 kWh",python pruebas_adversas.py --caso F1.crec+100 --periodo 1d
+F1,F1.crec+100,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 24422 kWh, déficit S0 24826 kWh",python pruebas_adversas.py --caso F1.crec+100 --periodo 1s
+F1,F1.crec+100,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 24898 kWh, déficit S0 25320 kWh",python pruebas_adversas.py --caso F1.crec+100 --periodo 1m
+F1,F1.crec+100,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 24550 kWh, déficit S0 25070 kWh",python pruebas_adversas.py --caso F1.crec+100 --periodo 6m
+F1,F1.crec+100,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 24609 kWh, déficit S0 25081 kWh",python pruebas_adversas.py --caso F1.crec+100 --periodo 1a
+F1,F1.crec+30,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.crec+30 --periodo 1d
+F1,F1.crec+30,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.crec+30 --periodo 1s
+F1,F1.crec+30,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.crec+30 --periodo 1m
+F1,F1.crec+30,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.crec+30 --periodo 6m
+F1,F1.crec+30,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.crec+30 --periodo 1a
+F1,F1.crec+60,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 867 kWh",python pruebas_adversas.py --caso F1.crec+60 --periodo 1d
+F1,F1.crec+60,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1717 kWh, déficit S0 5151 kWh",python pruebas_adversas.py --caso F1.crec+60 --periodo 1s
+F1,F1.crec+60,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1979 kWh, déficit S0 5400 kWh",python pruebas_adversas.py --caso F1.crec+60 --periodo 1m
+F1,F1.crec+60,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1904 kWh, déficit S0 5235 kWh",python pruebas_adversas.py --caso F1.crec+60 --periodo 6m
+F1,F1.crec+60,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 1880 kWh, déficit S0 5199 kWh",python pruebas_adversas.py --caso F1.crec+60 --periodo 1a
+F1,F1.hospital+50,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.hospital+50 --periodo 1d
+F1,F1.hospital+50,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.hospital+50 --periodo 1s
+F1,F1.hospital+50,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.hospital+50 --periodo 1m
+F1,F1.hospital+50,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.hospital+50 --periodo 6m
+F1,F1.hospital+50,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 0 kWh",python pruebas_adversas.py --caso F1.hospital+50 --periodo 1a
+F1,F1.hospital-imposible,1d,7,-,escalada,OK,NA,FALLA(A4),NA,OK,OK,OK,OK,OK,OK,OK,OK,A4,I3: escaló sin decir que la carga crítica no alcanza (7351 kWh): 'No quedan medidas de contingencia; la red no cubre la demanda: se requiere decisión del op',,python pruebas_adversas.py --caso F1.hospital-imposible --periodo 1d
+F1,F1.hospital-imposible,1s,7,-,escalada,OK,NA,FALLA(A4),NA,OK,OK,OK,OK,OK,OK,OK,OK,A4,I3: escaló sin decir que la carga crítica no alcanza (7529 kWh): 'No quedan medidas de contingencia; la red no cubre la demanda: se requiere decisión del op',,python pruebas_adversas.py --caso F1.hospital-imposible --periodo 1s
+F1,F1.hospital-imposible,1m,7,-,escalada,OK,NA,FALLA(A4),NA,OK,OK,OK,OK,OK,OK,OK,OK,A4,I3: escaló sin decir que la carga crítica no alcanza (8291 kWh): 'No quedan medidas de contingencia; la red no cubre la demanda: se requiere decisión del op',,python pruebas_adversas.py --caso F1.hospital-imposible --periodo 1m
+F1,F1.hospital-imposible,6m,7,-,escalada,OK,NA,FALLA(A4),NA,OK,OK,OK,OK,OK,OK,OK,OK,A4,I3: escaló sin decir que la carga crítica no alcanza (7571 kWh): 'No quedan medidas de contingencia; la red no cubre la demanda: se requiere decisión del op',,python pruebas_adversas.py --caso F1.hospital-imposible --periodo 6m
+F1,F1.hospital-imposible,1a,7,-,escalada,OK,NA,FALLA(A4),NA,OK,OK,OK,OK,OK,OK,OK,OK,A4,I3: escaló sin decir que la carga crítica no alcanza (7793 kWh): 'No quedan medidas de contingencia; la red no cubre la demanda: se requiere decisión del op',,python pruebas_adversas.py --caso F1.hospital-imposible --periodo 1a
+F1,F1.pico-19a22,1d,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 8 kWh, déficit S0 827 kWh",python pruebas_adversas.py --caso F1.pico-19a22 --periodo 1d
+F1,F1.pico-19a22,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 1576 kWh",python pruebas_adversas.py --caso F1.pico-19a22 --periodo 1s
+F1,F1.pico-19a22,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 1545 kWh",python pruebas_adversas.py --caso F1.pico-19a22 --periodo 1m
+F1,F1.pico-19a22,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 1571 kWh",python pruebas_adversas.py --caso F1.pico-19a22 --periodo 6m
+F1,F1.pico-19a22,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"recorte 0 kWh, déficit S0 1509 kWh",python pruebas_adversas.py --caso F1.pico-19a22 --periodo 1a
+F2,F2.cero-A1,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada -0 kWh, renovable 36.25 %, costo 41709 MXN",python pruebas_adversas.py --caso F2.cero-A1 --periodo 1d
+F2,F2.cero-A1,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 32.72 %, costo 45321 MXN",python pruebas_adversas.py --caso F2.cero-A1 --periodo 1s
+F2,F2.cero-A1,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 30.45 %, costo 46390 MXN",python pruebas_adversas.py --caso F2.cero-A1 --periodo 1m
+F2,F2.cero-A1,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada -0 kWh, renovable 30.03 %, costo 46364 MXN",python pruebas_adversas.py --caso F2.cero-A1 --periodo 6m
+F2,F2.cero-A1,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 30.91 %, costo 46213 MXN",python pruebas_adversas.py --caso F2.cero-A1 --periodo 1a
+F2,F2.cero-A2,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 31.1 %, costo 43597 MXN",python pruebas_adversas.py --caso F2.cero-A2 --periodo 1d
+F2,F2.cero-A2,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 23.47 %, costo 60334 MXN",python pruebas_adversas.py --caso F2.cero-A2 --periodo 1s
+F2,F2.cero-A2,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 21.94 %, costo 61198 MXN",python pruebas_adversas.py --caso F2.cero-A2 --periodo 1m
+F2,F2.cero-A2,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 21.65 %, costo 61027 MXN",python pruebas_adversas.py --caso F2.cero-A2 --periodo 6m
+F2,F2.cero-A2,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 22.39 %, costo 60673 MXN",python pruebas_adversas.py --caso F2.cero-A2 --periodo 1a
+F2,F2.cero-total,1d,7,-,escalada,NA,NA,NA,NA,NA,NA,FALLA(A3),OK,OK,OK,NA,FALLA(A3),A3,I7: división entre cero en E: float division by zero; división entre cero en E: float division by zero | E: sin propuesta con demanda baja (escalada: Falla persistente en E: se requiere decisión del operador.),,python pruebas_adversas.py --caso F2.cero-total --periodo 1d
+F2,F2.cero-total,1s,7,-,escalada,NA,NA,NA,NA,NA,NA,FALLA(A3),OK,OK,OK,NA,FALLA(A3),A3,I7: división entre cero en E: float division by zero; división entre cero en E: float division by zero | E: sin propuesta con demanda baja (escalada: Falla persistente en E: se requiere decisión del operador.),,python pruebas_adversas.py --caso F2.cero-total --periodo 1s
+F2,F2.cero-total,1m,7,-,escalada,NA,NA,NA,NA,NA,NA,FALLA(A3),OK,OK,OK,NA,FALLA(A3),A3,I7: división entre cero en E: float division by zero; división entre cero en E: float division by zero | E: sin propuesta con demanda baja (escalada: Falla persistente en E: se requiere decisión del operador.),,python pruebas_adversas.py --caso F2.cero-total --periodo 1m
+F2,F2.cero-total,6m,7,-,escalada,NA,NA,NA,NA,NA,NA,FALLA(A3),OK,OK,OK,NA,FALLA(A3),A3,I7: división entre cero en E: float division by zero; división entre cero en E: float division by zero | E: sin propuesta con demanda baja (escalada: Falla persistente en E: se requiere decisión del operador.),,python pruebas_adversas.py --caso F2.cero-total --periodo 6m
+F2,F2.cero-total,1a,7,-,escalada,NA,NA,NA,NA,NA,NA,FALLA(A3),OK,OK,OK,NA,FALLA(A3),A3,I7: división entre cero en E: float division by zero; división entre cero en E: float division by zero | E: sin propuesta con demanda baja (escalada: Falla persistente en E: se requiere decisión del operador.),,python pruebas_adversas.py --caso F2.cero-total --periodo 1a
+F2,F2.dem-30,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 24.97 %, costo 65490 MXN",python pruebas_adversas.py --caso F2.dem-30 --periodo 1d
+F2,F2.dem-30,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 20.38 %, costo 79401 MXN",python pruebas_adversas.py --caso F2.dem-30 --periodo 1s
+F2,F2.dem-30,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 19.01 %, costo 80390 MXN",python pruebas_adversas.py --caso F2.dem-30 --periodo 1m
+F2,F2.dem-30,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 18.76 %, costo 80217 MXN",python pruebas_adversas.py --caso F2.dem-30 --periodo 6m
+F2,F2.dem-30,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 19.36 %, costo 80006 MXN",python pruebas_adversas.py --caso F2.dem-30 --periodo 1a
+F2,F2.dem-60,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada -0 kWh, renovable 43.45 %, costo 30309 MXN",python pruebas_adversas.py --caso F2.dem-60 --periodo 1d
+F2,F2.dem-60,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 35.66 %, costo 39283 MXN",python pruebas_adversas.py --caso F2.dem-60 --periodo 1s
+F2,F2.dem-60,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 33.28 %, costo 39603 MXN",python pruebas_adversas.py --caso F2.dem-60 --periodo 1m
+F2,F2.dem-60,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 32.83 %, costo 39550 MXN",python pruebas_adversas.py --caso F2.dem-60 --periodo 6m
+F2,F2.dem-60,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 33.88 %, costo 39247 MXN",python pruebas_adversas.py --caso F2.dem-60 --periodo 1a
+F2,F2.dem-90,1d,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 4518 kWh, renovable 97.03 %, costo 2248 MXN",python pruebas_adversas.py --caso F2.dem-90 --periodo 1d
+F2,F2.dem-90,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 3294 kWh, renovable 93.8 %, costo 3253 MXN",python pruebas_adversas.py --caso F2.dem-90 --periodo 1s
+F2,F2.dem-90,1m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 2742 kWh, renovable 92.29 %, costo 3472 MXN",python pruebas_adversas.py --caso F2.dem-90 --periodo 1m
+F2,F2.dem-90,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 2574 kWh, renovable 92.68 %, costo 3291 MXN",python pruebas_adversas.py --caso F2.dem-90 --periodo 6m
+F2,F2.dem-90,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 2873 kWh, renovable 92.75 %, costo 3350 MXN",python pruebas_adversas.py --caso F2.dem-90 --periodo 1a
+F2,F2.madrugada-10,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 20.75 %, costo 90119 MXN",python pruebas_adversas.py --caso F2.madrugada-10 --periodo 1d
+F2,F2.madrugada-10,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 16.88 %, costo 108012 MXN",python pruebas_adversas.py --caso F2.madrugada-10 --periodo 1s
+F2,F2.madrugada-10,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 15.74 %, costo 109014 MXN",python pruebas_adversas.py --caso F2.madrugada-10 --periodo 1m
+F2,F2.madrugada-10,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 15.53 %, costo 108765 MXN",python pruebas_adversas.py --caso F2.madrugada-10 --periodo 6m
+F2,F2.madrugada-10,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable desperdiciada 0 kWh, renovable 16.03 %, costo 108609 MXN",python pruebas_adversas.py --caso F2.madrugada-10 --periodo 1a
+F3,F3.eolica-volatil-s201,1d,201,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.88 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s201 --periodo 1d
+F3,F3.eolica-volatil-s201,1s,201,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.34 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s201 --periodo 1s
+F3,F3.eolica-volatil-s201,1m,201,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.3 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s201 --periodo 1m
+F3,F3.eolica-volatil-s201,6m,201,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.27 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s201 --periodo 6m
+F3,F3.eolica-volatil-s201,1a,201,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.63 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s201 --periodo 1a
+F3,F3.eolica-volatil-s202,1d,202,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.16 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s202 --periodo 1d
+F3,F3.eolica-volatil-s202,1s,202,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 13.0 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s202 --periodo 1s
+F3,F3.eolica-volatil-s202,1m,202,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.05 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s202 --periodo 1m
+F3,F3.eolica-volatil-s202,6m,202,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.48 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s202 --periodo 6m
+F3,F3.eolica-volatil-s202,1a,202,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.54 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s202 --periodo 1a
+F3,F3.eolica-volatil-s203,1d,203,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.95 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s203 --periodo 1d
+F3,F3.eolica-volatil-s203,1s,203,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.81 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s203 --periodo 1s
+F3,F3.eolica-volatil-s203,1m,203,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.58 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s203 --periodo 1m
+F3,F3.eolica-volatil-s203,6m,203,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.12 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s203 --periodo 6m
+F3,F3.eolica-volatil-s203,1a,203,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.51 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.eolica-volatil-s203 --periodo 1a
+F3,F3.nubes-s101,1d,101,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.87 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s101 --periodo 1d
+F3,F3.nubes-s101,1s,101,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.93 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s101 --periodo 1s
+F3,F3.nubes-s101,1m,101,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.27 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s101 --periodo 1m
+F3,F3.nubes-s101,6m,101,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.46 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s101 --periodo 6m
+F3,F3.nubes-s101,1a,101,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.41 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s101 --periodo 1a
+F3,F3.nubes-s102,1d,102,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.51 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s102 --periodo 1d
+F3,F3.nubes-s102,1s,102,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.2 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s102 --periodo 1s
+F3,F3.nubes-s102,1m,102,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.98 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s102 --periodo 1m
+F3,F3.nubes-s102,6m,102,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.52 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s102 --periodo 6m
+F3,F3.nubes-s102,1a,102,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.63 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s102 --periodo 1a
+F3,F3.nubes-s103,1d,103,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 13.04 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s103 --periodo 1d
+F3,F3.nubes-s103,1s,103,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.42 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s103 --periodo 1s
+F3,F3.nubes-s103,1m,103,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.4 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s103 --periodo 1m
+F3,F3.nubes-s103,6m,103,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 9.88 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s103 --periodo 6m
+F3,F3.nubes-s103,1a,103,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.69 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s103 --periodo 1a
+F3,F3.nubes-s104,1d,104,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.63 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s104 --periodo 1d
+F3,F3.nubes-s104,1s,104,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.44 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s104 --periodo 1s
+F3,F3.nubes-s104,1m,104,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.12 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s104 --periodo 1m
+F3,F3.nubes-s104,6m,104,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 9.99 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s104 --periodo 6m
+F3,F3.nubes-s104,1a,104,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.85 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s104 --periodo 1a
+F3,F3.nubes-s105,1d,105,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.47 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s105 --periodo 1d
+F3,F3.nubes-s105,1s,105,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.32 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s105 --periodo 1s
+F3,F3.nubes-s105,1m,105,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.93 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s105 --periodo 1m
+F3,F3.nubes-s105,6m,105,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.4 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s105 --periodo 6m
+F3,F3.nubes-s105,1a,105,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 10.49 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.nubes-s105 --periodo 1a
+F3,F3.rampa-17,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 17.18 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.rampa-17 --periodo 1d
+F3,F3.rampa-17,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 14.04 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.rampa-17 --periodo 1s
+F3,F3.rampa-17,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 13.1 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.rampa-17 --periodo 1m
+F3,F3.rampa-17,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.93 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.rampa-17 --periodo 6m
+F3,F3.rampa-17,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 13.34 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.rampa-17 --periodo 1a
+F3,F3.renov150,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 26.22 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150 --periodo 1d
+F3,F3.renov150,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 21.4 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150 --periodo 1s
+F3,F3.renov150,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 19.97 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150 --periodo 1m
+F3,F3.renov150,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 19.7 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150 --periodo 6m
+F3,F3.renov150,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 20.33 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150 --periodo 1a
+F3,F3.renov150-dem-60,1d,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 63.27 %, desperdiciada 355 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-60 --periodo 1d
+F3,F3.renov150-dem-60,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 53.06 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-60 --periodo 1s
+F3,F3.renov150-dem-60,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 49.56 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-60 --periodo 1m
+F3,F3.renov150-dem-60,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 48.97 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-60 --periodo 6m
+F3,F3.renov150-dem-60,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 50.5 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-60 --periodo 1a
+F3,F3.renov150-dem-90,1d,7,S0,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 100.0 %, desperdiciada 9510 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-90 --periodo 1d
+F3,F3.renov150-dem-90,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 100.0 %, desperdiciada 7753 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-90 --periodo 1s
+F3,F3.renov150-dem-90,1m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 99.45 %, desperdiciada 6795 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-90 --periodo 1m
+F3,F3.renov150-dem-90,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 100.0 %, desperdiciada 6546 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-90 --periodo 6m
+F3,F3.renov150-dem-90,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 99.99 %, desperdiciada 7001 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.renov150-dem-90 --periodo 1a
+F3,F3.solar-0-12a14,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 15.19 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.solar-0-12a14 --periodo 1d
+F3,F3.solar-0-12a14,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 12.52 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.solar-0-12a14 --periodo 1s
+F3,F3.solar-0-12a14,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.73 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.solar-0-12a14 --periodo 1m
+F3,F3.solar-0-12a14,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.57 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.solar-0-12a14 --periodo 6m
+F3,F3.solar-0-12a14,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 11.93 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F3.solar-0-12a14 --periodo 1a
+F4,F4.ambas-fuera,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 0.0 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.ambas-fuera --periodo 1d
+F4,F4.ambas-fuera,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 0.0 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.ambas-fuera --periodo 1s
+F4,F4.ambas-fuera,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 0.0 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.ambas-fuera --periodo 1m
+F4,F4.ambas-fuera,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 0.0 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.ambas-fuera --periodo 6m
+F4,F4.ambas-fuera,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 0.0 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.ambas-fuera --periodo 1a
+F4,F4.cobertura-renovable,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,sin validación de bandas con menos de 3 días,python pruebas_adversas.py --caso F4.cobertura-renovable --periodo 1d
+F4,F4.cobertura-renovable,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"cobertura 36.8 %, alerta True, lecturas validadas 144",python pruebas_adversas.py --caso F4.cobertura-renovable --periodo 1s
+F4,F4.cobertura-renovable,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A5),A5,"E: la renovable real del último día quedó al 30 % (bajo P10) y la cobertura de bandas (93.1 % con 144 lecturas, solo de demanda) no lo detecta","cobertura 93.1 %, alerta False, lecturas validadas 144",python pruebas_adversas.py --caso F4.cobertura-renovable --periodo 1m
+F4,F4.cobertura-renovable,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A5),A5,"E: la renovable real del último día quedó al 30 % (bajo P10) y la cobertura de bandas (84.0 % con 144 lecturas, solo de demanda) no lo detecta","cobertura 84.0 %, alerta False, lecturas validadas 144",python pruebas_adversas.py --caso F4.cobertura-renovable --periodo 6m
+F4,F4.cobertura-renovable,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A5),A5,"E: la renovable real del último día quedó al 30 % (bajo P10) y la cobertura de bandas (81.2 % con 144 lecturas, solo de demanda) no lo detecta","cobertura 81.2 %, alerta False, lecturas validadas 144",python pruebas_adversas.py --caso F4.cobertura-renovable --periodo 1a
+F4,F4.eolica-fuera,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 8.85 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.eolica-fuera --periodo 1d
+F4,F4.eolica-fuera,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 6.75 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.eolica-fuera --periodo 1s
+F4,F4.eolica-fuera,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 6.09 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.eolica-fuera --periodo 1m
+F4,F4.eolica-fuera,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 6.04 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.eolica-fuera --periodo 6m
+F4,F4.eolica-fuera,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 6.26 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.eolica-fuera --periodo 1a
+F4,F4.optimista,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 6646 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista --periodo 1d
+F4,F4.optimista,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5777 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista --periodo 1s
+F4,F4.optimista,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5377 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista --periodo 1m
+F4,F4.optimista,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5132 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista --periodo 6m
+F4,F4.optimista,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5376 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista --periodo 1a
+F4,F4.optimista-calor,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 6646 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-calor --periodo 1d
+F4,F4.optimista-calor,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5777 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-calor --periodo 1s
+F4,F4.optimista-calor,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5377 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-calor --periodo 1m
+F4,F4.optimista-calor,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5132 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-calor --periodo 6m
+F4,F4.optimista-calor,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5376 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-calor --periodo 1a
+F4,F4.optimista-crec+30,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 6646 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-crec+30 --periodo 1d
+F4,F4.optimista-crec+30,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5777 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-crec+30 --periodo 1s
+F4,F4.optimista-crec+30,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5377 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-crec+30 --periodo 1m
+F4,F4.optimista-crec+30,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5132 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-crec+30 --periodo 6m
+F4,F4.optimista-crec+30,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5376 kWh renovables; déficit no previsto 0 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-crec+30 --periodo 1a
+F4,F4.optimista-trafo55,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 6646 kWh renovables; déficit no previsto 844 kWh con el plan S2,python pruebas_adversas.py --caso F4.optimista-trafo55 --periodo 1d
+F4,F4.optimista-trafo55,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5777 kWh renovables; déficit no previsto 4589 kWh con el plan S2-CONT,python pruebas_adversas.py --caso F4.optimista-trafo55 --periodo 1s
+F4,F4.optimista-trafo55,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5377 kWh renovables; déficit no previsto 4428 kWh con el plan S2-CONT,python pruebas_adversas.py --caso F4.optimista-trafo55 --periodo 1m
+F4,F4.optimista-trafo55,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5132 kWh renovables; déficit no previsto 4237 kWh con el plan S2-CONT,python pruebas_adversas.py --caso F4.optimista-trafo55 --periodo 6m
+F4,F4.optimista-trafo55,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,renovable real = 0.5×P10: faltan 5376 kWh renovables; déficit no previsto 4434 kWh con el plan S2-CONT,python pruebas_adversas.py --caso F4.optimista-trafo55 --periodo 1a
+F4,F4.parcial,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 7.01 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.parcial --periodo 1d
+F4,F4.parcial,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 5.63 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.parcial --periodo 1s
+F4,F4.parcial,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 5.21 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.parcial --periodo 1m
+F4,F4.parcial,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 5.15 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.parcial --periodo 6m
+F4,F4.parcial,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 5.32 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.parcial --periodo 1a
+F4,F4.solar-fuera,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 8.63 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.solar-fuera --periodo 1d
+F4,F4.solar-fuera,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 7.51 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.solar-fuera --periodo 1s
+F4,F4.solar-fuera,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 7.22 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.solar-fuera --periodo 1m
+F4,F4.solar-fuera,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 7.09 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.solar-fuera --periodo 6m
+F4,F4.solar-fuera,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 7.29 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F4.solar-fuera --periodo 1a
+F5,F5.baja-renov150-fallaA2,1d,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 63.27 %, desperdiciada 355 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F5.baja-renov150-fallaA2 --periodo 1d
+F5,F5.baja-renov150-fallaA2,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 53.06 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F5.baja-renov150-fallaA2 --periodo 1s
+F5,F5.baja-renov150-fallaA2,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 49.56 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F5.baja-renov150-fallaA2 --periodo 1m
+F5,F5.baja-renov150-fallaA2,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 48.97 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F5.baja-renov150-fallaA2 --periodo 6m
+F5,F5.baja-renov150-fallaA2,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"renovable 50.5 %, desperdiciada 0 kWh, recorte 0 kWh",python pruebas_adversas.py --caso F5.baja-renov150-fallaA2 --periodo 1a
+F5,F5.contingencia-3rech,1d,7,-,escalada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 95, 21 mensajes; motivo: Se alcanzó el máximo de 3 rechazos: se requiere decisión del operador.",python pruebas_adversas.py --caso F5.contingencia-3rech --periodo 1d
+F5,F5.contingencia-3rech,1s,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 60, 14 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech --periodo 1s
+F5,F5.contingencia-3rech,1m,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 60, 14 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech --periodo 1m
+F5,F5.contingencia-3rech,6m,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 60, 14 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech --periodo 6m
+F5,F5.contingencia-3rech,1a,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 60, 14 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech --periodo 1a
+F5,F5.contingencia-3rech-seguridad,1d,7,-,escalada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 95, 21 mensajes; motivo: Se alcanzó el máximo de 3 rechazos: se requiere decisión del operador.",python pruebas_adversas.py --caso F5.contingencia-3rech-seguridad --periodo 1d
+F5,F5.contingencia-3rech-seguridad,1s,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 84, 19 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech-seguridad --periodo 1s
+F5,F5.contingencia-3rech-seguridad,1m,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 84, 19 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech-seguridad --periodo 1m
+F5,F5.contingencia-3rech-seguridad,6m,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 84, 19 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech-seguridad --periodo 6m
+F5,F5.contingencia-3rech-seguridad,1a,7,-,escalada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"costo 84, 19 mensajes; motivo: No quedan medidas de contingencia; la red no cubre la demanda: se requ",python pruebas_adversas.py --caso F5.contingencia-3rech-seguridad --periodo 1a
+F5,F5.dem+60-renov0-trafo55,1d,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 35416 kWh, déficit S0 35416 kWh",python pruebas_adversas.py --caso F5.dem+60-renov0-trafo55 --periodo 1d
+F5,F5.dem+60-renov0-trafo55,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 50887 kWh, déficit S0 50887 kWh",python pruebas_adversas.py --caso F5.dem+60-renov0-trafo55 --periodo 1s
+F5,F5.dem+60-renov0-trafo55,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 50728 kWh, déficit S0 50728 kWh",python pruebas_adversas.py --caso F5.dem+60-renov0-trafo55 --periodo 1m
+F5,F5.dem+60-renov0-trafo55,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 50367 kWh, déficit S0 50367 kWh",python pruebas_adversas.py --caso F5.dem+60-renov0-trafo55 --periodo 6m
+F5,F5.dem+60-renov0-trafo55,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 50685 kWh, déficit S0 50685 kWh",python pruebas_adversas.py --caso F5.dem+60-renov0-trafo55 --periodo 1a
+F5,F5.fallaA1-hosp+50-pico,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 2530 kWh, déficit S0 2840 kWh",python pruebas_adversas.py --caso F5.fallaA1-hosp+50-pico --periodo 1d
+F5,F5.fallaA1-hosp+50-pico,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 9951 kWh, déficit S0 9951 kWh",python pruebas_adversas.py --caso F5.fallaA1-hosp+50-pico --periodo 1s
+F5,F5.fallaA1-hosp+50-pico,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 10145 kWh, déficit S0 10145 kWh",python pruebas_adversas.py --caso F5.fallaA1-hosp+50-pico --periodo 1m
+F5,F5.fallaA1-hosp+50-pico,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 9997 kWh, déficit S0 9997 kWh",python pruebas_adversas.py --caso F5.fallaA1-hosp+50-pico --periodo 6m
+F5,F5.fallaA1-hosp+50-pico,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,"recorte 9898 kWh, déficit S0 9898 kWh",python pruebas_adversas.py --caso F5.fallaA1-hosp+50-pico --periodo 1a
+F6,F6.apagon-ultimo-dia,1d,7,-,escalada,NA,NA,NA,NA,NA,NA,FALLA(A3),OK,OK,OK,NA,OK,A3,I7: división entre cero en E: float division by zero; división entre cero en E: float division by zero,D marcó 0 de 144 lecturas alteradas (0 %),python pruebas_adversas.py --caso F6.apagon-ultimo-dia --periodo 1d
+F6,F6.apagon-ultimo-dia,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 144 de 144 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.apagon-ultimo-dia --periodo 1s
+F6,F6.apagon-ultimo-dia,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 144 de 144 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.apagon-ultimo-dia --periodo 1m
+F6,F6.apagon-ultimo-dia,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 144 de 144 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.apagon-ultimo-dia --periodo 6m
+F6,F6.apagon-ultimo-dia,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 144 de 144 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.apagon-ultimo-dia --periodo 1a
+F6,F6.congelado,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A9),A9,E: D marcó solo 0 % de las lecturas alteradas (< 90 %),D marcó 0 de 24 lecturas alteradas (0 %),python pruebas_adversas.py --caso F6.congelado --periodo 1d
+F6,F6.congelado,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A9),A9,E: D marcó solo 0 % de las lecturas alteradas (< 90 %),D marcó 0 de 168 lecturas alteradas (0 %),python pruebas_adversas.py --caso F6.congelado --periodo 1s
+F6,F6.congelado,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A9),A9,E: D marcó solo 86 % de las lecturas alteradas (< 90 %),D marcó 145 de 168 lecturas alteradas (86 %),python pruebas_adversas.py --caso F6.congelado --periodo 1m
+F6,F6.congelado,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 154 de 168 lecturas alteradas (92 %),python pruebas_adversas.py --caso F6.congelado --periodo 6m
+F6,F6.congelado,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 154 de 168 lecturas alteradas (92 %),python pruebas_adversas.py --caso F6.congelado --periodo 1a
+F6,F6.historial-1d,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A6),A6,E: con 1 día la banda P10-P90 (10.1 %) es más estrecha que con 1 mes (41.7 %): subestima la incertidumbre,ancho máximo de la banda P10-P90 de demanda: 10.1 % con 1 día vs 41.7 % con 1 mes,python pruebas_adversas.py --caso F6.historial-1d --periodo 1d
+F6,F6.nan10,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"19 NaN inyectados, 19 interpolados",python pruebas_adversas.py --caso F6.nan10 --periodo 1d
+F6,F6.nan10,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"139 NaN inyectados, 139 interpolados",python pruebas_adversas.py --caso F6.nan10 --periodo 1s
+F6,F6.nan10,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"592 NaN inyectados, 597 interpolados",python pruebas_adversas.py --caso F6.nan10 --periodo 1m
+F6,F6.nan10,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"3419 NaN inyectados, 3460 interpolados",python pruebas_adversas.py --caso F6.nan10 --periodo 6m
+F6,F6.nan10,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"6899 NaN inyectados, 6977 interpolados",python pruebas_adversas.py --caso F6.nan10 --periodo 1a
+F6,F6.nan40,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"73 NaN inyectados, 73 interpolados",python pruebas_adversas.py --caso F6.nan40 --periodo 1d
+F6,F6.nan40,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"536 NaN inyectados, 536 interpolados",python pruebas_adversas.py --caso F6.nan40 --periodo 1s
+F6,F6.nan40,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"2368 NaN inyectados, 2373 interpolados",python pruebas_adversas.py --caso F6.nan40 --periodo 1m
+F6,F6.nan40,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"13966 NaN inyectados, 13993 interpolados",python pruebas_adversas.py --caso F6.nan40 --periodo 6m
+F6,F6.nan40,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"28157 NaN inyectados, 28210 interpolados",python pruebas_adversas.py --caso F6.nan40 --periodo 1a
+F6,F6.negativas,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A8),A8,E: pronóstico negativo en Fraccionamiento norte (-267 kW); bandas desordenadas en Fraccionamiento norte (P10 ≤ P50 ≤ P90 no se cumple),D marcó 10 de 10 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.negativas --periodo 1d
+F6,F6.negativas,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,FALLA(A8),A8,E: pronóstico negativo en Hospital General (-128 kW); bandas desordenadas en Hospital General (P10 ≤ P50 ≤ P90 no se cumple),D marcó 51 de 52 lecturas alteradas (98 %),python pruebas_adversas.py --caso F6.negativas --periodo 1s
+F6,F6.negativas,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 209 de 209 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.negativas --periodo 1m
+F6,F6.negativas,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 1261 de 1265 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.negativas --periodo 6m
+F6,F6.negativas,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 2571 de 2574 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.negativas --periodo 1a
+F6,F6.picos50,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 3 de 3 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.picos50 --periodo 1d
+F6,F6.picos50,1s,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,,,D marcó 8 de 8 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.picos50 --periodo 1s
+F6,F6.picos50,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 41 de 41 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.picos50 --periodo 1m
+F6,F6.picos50,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 222 de 223 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.picos50 --periodo 6m
+F6,F6.picos50,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,D marcó 505 de 505 lecturas alteradas (100 %),python pruebas_adversas.py --caso F6.picos50 --periodo 1a
+F6,F6.reloj+1h,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,,python pruebas_adversas.py --caso F6.reloj+1h --periodo 1d
+F6,F6.reloj+1h,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,,python pruebas_adversas.py --caso F6.reloj+1h --periodo 1s
+F6,F6.reloj+1h,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,,python pruebas_adversas.py --caso F6.reloj+1h --periodo 1m
+F6,F6.reloj+1h,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,,python pruebas_adversas.py --caso F6.reloj+1h --periodo 6m
+F6,F6.reloj+1h,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,,python pruebas_adversas.py --caso F6.reloj+1h --periodo 1a
+F6,F6.sensor-fuera,1d,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A2),OK,NA,FALLA(A2),A2,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F6.sensor-fuera --periodo 1d
+F6,F6.sensor-fuera,1s,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A2),OK,NA,FALLA(A2),A2,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F6.sensor-fuera --periodo 1s
+F6,F6.sensor-fuera,1m,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A2),OK,NA,FALLA(A2),A2,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F6.sensor-fuera --periodo 1m
+F6,F6.sensor-fuera,6m,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A2),OK,NA,FALLA(A2),A2,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F6.sensor-fuera --periodo 6m
+F6,F6.sensor-fuera,1a,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A2),OK,NA,FALLA(A2),A2,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F6.sensor-fuera --periodo 1a
+F7,F7.D-luego-F,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 59, 14 mensajes",python pruebas_adversas.py --caso F7.D-luego-F --periodo 1d
+F7,F7.D-luego-F,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 59, 14 mensajes",python pruebas_adversas.py --caso F7.D-luego-F --periodo 1s
+F7,F7.D-luego-F,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 59, 14 mensajes",python pruebas_adversas.py --caso F7.D-luego-F --periodo 1m
+F7,F7.D-luego-F,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 59, 14 mensajes",python pruebas_adversas.py --caso F7.D-luego-F --periodo 6m
+F7,F7.D-luego-F,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,OK,,,"costo 59, 14 mensajes",python pruebas_adversas.py --caso F7.D-luego-F --periodo 1a
+F7,F7.falla-B,1d,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A1),OK,NA,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F7.falla-B --periodo 1d
+F7,F7.falla-B,1s,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A1),OK,NA,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F7.falla-B --periodo 1s
+F7,F7.falla-B,1m,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A1),OK,NA,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F7.falla-B --periodo 1m
+F7,F7.falla-B,6m,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A1),OK,NA,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F7.falla-B --periodo 6m
+F7,F7.falla-B,1a,7,-,excepcion,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A1),OK,NA,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'B' | E: el flujo se rompió: KeyError: 'B',,python pruebas_adversas.py --caso F7.falla-B --periodo 1a
+F7,F7.falla-G,1d,7,-,excepcion,OK,NA,NA,NA,NA,OK,OK,NA,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'G' | E: el flujo se rompió: KeyError: 'G',,python pruebas_adversas.py --caso F7.falla-G --periodo 1d
+F7,F7.falla-G,1s,7,-,excepcion,OK,NA,NA,NA,NA,OK,OK,NA,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'G' | E: el flujo se rompió: KeyError: 'G',,python pruebas_adversas.py --caso F7.falla-G --periodo 1s
+F7,F7.falla-G,1m,7,-,excepcion,OK,NA,NA,NA,NA,OK,OK,NA,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'G' | E: el flujo se rompió: KeyError: 'G',,python pruebas_adversas.py --caso F7.falla-G --periodo 1m
+F7,F7.falla-G,6m,7,-,excepcion,OK,NA,NA,NA,NA,OK,OK,NA,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'G' | E: el flujo se rompió: KeyError: 'G',,python pruebas_adversas.py --caso F7.falla-G --periodo 6m
+F7,F7.falla-G,1a,7,-,excepcion,OK,NA,NA,NA,NA,OK,OK,NA,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'G' | E: el flujo se rompió: KeyError: 'G',,python pruebas_adversas.py --caso F7.falla-G --periodo 1a
+F7,F7.falla-H,1d,7,-,excepcion,OK,OK,OK,OK,NA,OK,OK,OK,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'H' | E: el flujo se rompió: KeyError: 'H',,python pruebas_adversas.py --caso F7.falla-H --periodo 1d
+F7,F7.falla-H,1s,7,-,excepcion,OK,OK,OK,OK,NA,OK,OK,OK,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'H' | E: el flujo se rompió: KeyError: 'H',,python pruebas_adversas.py --caso F7.falla-H --periodo 1s
+F7,F7.falla-H,1m,7,-,excepcion,OK,OK,OK,OK,NA,OK,OK,OK,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'H' | E: el flujo se rompió: KeyError: 'H',,python pruebas_adversas.py --caso F7.falla-H --periodo 1m
+F7,F7.falla-H,6m,7,-,excepcion,OK,OK,OK,OK,NA,OK,OK,OK,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'H' | E: el flujo se rompió: KeyError: 'H',,python pruebas_adversas.py --caso F7.falla-H --periodo 6m
+F7,F7.falla-H,1a,7,-,excepcion,OK,OK,OK,OK,NA,OK,OK,OK,FALLA(A1),OK,OK,FALLA(A1),A1,I9: el flujo se rompió: KeyError: 'H' | E: el flujo se rompió: KeyError: 'H',,python pruebas_adversas.py --caso F7.falla-H --periodo 1a
+F7,F7.persistente-D,1d,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 33, 8 mensajes; motivo: Falla persistente en D: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-D --periodo 1d
+F7,F7.persistente-D,1s,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 33, 8 mensajes; motivo: Falla persistente en D: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-D --periodo 1s
+F7,F7.persistente-D,1m,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 33, 8 mensajes; motivo: Falla persistente en D: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-D --periodo 1m
+F7,F7.persistente-D,6m,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 33, 8 mensajes; motivo: Falla persistente en D: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-D --periodo 6m
+F7,F7.persistente-D,1a,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 33, 8 mensajes; motivo: Falla persistente en D: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-D --periodo 1a
+F7,F7.persistente-E,1d,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 35, 10 mensajes; motivo: Falla persistente en E: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-E --periodo 1d
+F7,F7.persistente-E,1s,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 35, 10 mensajes; motivo: Falla persistente en E: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-E --periodo 1s
+F7,F7.persistente-E,1m,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 35, 10 mensajes; motivo: Falla persistente en E: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-E --periodo 1m
+F7,F7.persistente-E,6m,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 35, 10 mensajes; motivo: Falla persistente en E: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-E --periodo 6m
+F7,F7.persistente-E,1a,7,-,escalada,NA,NA,NA,NA,NA,NA,OK,OK,OK,OK,NA,OK,,,"costo 35, 10 mensajes; motivo: Falla persistente en E: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-E --periodo 1a
+F7,F7.persistente-F,1d,7,-,escalada,OK,NA,NA,NA,NA,OK,OK,OK,OK,OK,NA,OK,,,"costo 49, 12 mensajes; motivo: Falla persistente en F: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-F --periodo 1d
+F7,F7.persistente-F,1s,7,-,escalada,OK,NA,NA,NA,NA,OK,OK,OK,OK,OK,NA,OK,,,"costo 49, 12 mensajes; motivo: Falla persistente en F: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-F --periodo 1s
+F7,F7.persistente-F,1m,7,-,escalada,OK,NA,NA,NA,NA,OK,OK,OK,OK,OK,NA,OK,,,"costo 49, 12 mensajes; motivo: Falla persistente en F: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-F --periodo 1m
+F7,F7.persistente-F,6m,7,-,escalada,OK,NA,NA,NA,NA,OK,OK,OK,OK,OK,NA,OK,,,"costo 49, 12 mensajes; motivo: Falla persistente en F: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-F --periodo 6m
+F7,F7.persistente-F,1a,7,-,escalada,OK,NA,NA,NA,NA,OK,OK,OK,OK,OK,NA,OK,,,"costo 49, 12 mensajes; motivo: Falla persistente en F: se requiere decisión del operador.",python pruebas_adversas.py --caso F7.persistente-F --periodo 1a
+M,M1.dem×1.0-cap0.55,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap0.55 --periodo 1d
+M,M1.dem×1.0-cap0.55,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap0.55 --periodo 1s
+M,M1.dem×1.0-cap0.55,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap0.55 --periodo 1m
+M,M1.dem×1.0-cap0.55,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap0.55 --periodo 6m
+M,M1.dem×1.0-cap0.55,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap0.55 --periodo 1a
+M,M1.dem×1.0-cap1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap1.0 --periodo 1d
+M,M1.dem×1.0-cap1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap1.0 --periodo 1s
+M,M1.dem×1.0-cap1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap1.0 --periodo 1m
+M,M1.dem×1.0-cap1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap1.0 --periodo 6m
+M,M1.dem×1.0-cap1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.0-cap1.0 --periodo 1a
+M,M1.dem×1.3-cap0.55,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap0.55 --periodo 1d
+M,M1.dem×1.3-cap0.55,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap0.55 --periodo 1s
+M,M1.dem×1.3-cap0.55,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap0.55 --periodo 1m
+M,M1.dem×1.3-cap0.55,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap0.55 --periodo 6m
+M,M1.dem×1.3-cap0.55,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap0.55 --periodo 1a
+M,M1.dem×1.3-cap1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap1.0 --periodo 1d
+M,M1.dem×1.3-cap1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap1.0 --periodo 1s
+M,M1.dem×1.3-cap1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap1.0 --periodo 1m
+M,M1.dem×1.3-cap1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap1.0 --periodo 6m
+M,M1.dem×1.3-cap1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.3-cap1.0 --periodo 1a
+M,M1.dem×1.6-cap0.55,1d,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap0.55 --periodo 1d
+M,M1.dem×1.6-cap0.55,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap0.55 --periodo 1s
+M,M1.dem×1.6-cap0.55,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap0.55 --periodo 1m
+M,M1.dem×1.6-cap0.55,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap0.55 --periodo 6m
+M,M1.dem×1.6-cap0.55,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap0.55 --periodo 1a
+M,M1.dem×1.6-cap1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap1.0 --periodo 1d
+M,M1.dem×1.6-cap1.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap1.0 --periodo 1s
+M,M1.dem×1.6-cap1.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap1.0 --periodo 1m
+M,M1.dem×1.6-cap1.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap1.0 --periodo 6m
+M,M1.dem×1.6-cap1.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×1.6-cap1.0 --periodo 1a
+M,M1.dem×2.0-cap0.55,1d,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap0.55 --periodo 1d
+M,M1.dem×2.0-cap0.55,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap0.55 --periodo 1s
+M,M1.dem×2.0-cap0.55,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap0.55 --periodo 1m
+M,M1.dem×2.0-cap0.55,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap0.55 --periodo 6m
+M,M1.dem×2.0-cap0.55,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap0.55 --periodo 1a
+M,M1.dem×2.0-cap1.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap1.0 --periodo 1d
+M,M1.dem×2.0-cap1.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap1.0 --periodo 1s
+M,M1.dem×2.0-cap1.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap1.0 --periodo 1m
+M,M1.dem×2.0-cap1.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap1.0 --periodo 6m
+M,M1.dem×2.0-cap1.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.0-cap1.0 --periodo 1a
+M,M1.dem×2.5-cap0.55,1d,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap0.55 --periodo 1d
+M,M1.dem×2.5-cap0.55,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap0.55 --periodo 1s
+M,M1.dem×2.5-cap0.55,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap0.55 --periodo 1m
+M,M1.dem×2.5-cap0.55,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap0.55 --periodo 6m
+M,M1.dem×2.5-cap0.55,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap0.55 --periodo 1a
+M,M1.dem×2.5-cap1.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap1.0 --periodo 1d
+M,M1.dem×2.5-cap1.0,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap1.0 --periodo 1s
+M,M1.dem×2.5-cap1.0,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap1.0 --periodo 1m
+M,M1.dem×2.5-cap1.0,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap1.0 --periodo 6m
+M,M1.dem×2.5-cap1.0,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M1.dem×2.5-cap1.0 --periodo 1a
+M,M2.renov×0.0-dem1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem1.0 --periodo 1d
+M,M2.renov×0.0-dem1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem1.0 --periodo 1s
+M,M2.renov×0.0-dem1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem1.0 --periodo 1m
+M,M2.renov×0.0-dem1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem1.0 --periodo 6m
+M,M2.renov×0.0-dem1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem1.0 --periodo 1a
+M,M2.renov×0.0-dem2.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem2.0 --periodo 1d
+M,M2.renov×0.0-dem2.0,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem2.0 --periodo 1s
+M,M2.renov×0.0-dem2.0,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem2.0 --periodo 1m
+M,M2.renov×0.0-dem2.0,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem2.0 --periodo 6m
+M,M2.renov×0.0-dem2.0,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.0-dem2.0 --periodo 1a
+M,M2.renov×0.5-dem1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem1.0 --periodo 1d
+M,M2.renov×0.5-dem1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem1.0 --periodo 1s
+M,M2.renov×0.5-dem1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem1.0 --periodo 1m
+M,M2.renov×0.5-dem1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem1.0 --periodo 6m
+M,M2.renov×0.5-dem1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem1.0 --periodo 1a
+M,M2.renov×0.5-dem2.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem2.0 --periodo 1d
+M,M2.renov×0.5-dem2.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem2.0 --periodo 1s
+M,M2.renov×0.5-dem2.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem2.0 --periodo 1m
+M,M2.renov×0.5-dem2.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem2.0 --periodo 6m
+M,M2.renov×0.5-dem2.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×0.5-dem2.0 --periodo 1a
+M,M2.renov×1.0-dem1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem1.0 --periodo 1d
+M,M2.renov×1.0-dem1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem1.0 --periodo 1s
+M,M2.renov×1.0-dem1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem1.0 --periodo 1m
+M,M2.renov×1.0-dem1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem1.0 --periodo 6m
+M,M2.renov×1.0-dem1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem1.0 --periodo 1a
+M,M2.renov×1.0-dem2.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem2.0 --periodo 1d
+M,M2.renov×1.0-dem2.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem2.0 --periodo 1s
+M,M2.renov×1.0-dem2.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem2.0 --periodo 1m
+M,M2.renov×1.0-dem2.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem2.0 --periodo 6m
+M,M2.renov×1.0-dem2.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.0-dem2.0 --periodo 1a
+M,M2.renov×1.5-dem1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem1.0 --periodo 1d
+M,M2.renov×1.5-dem1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem1.0 --periodo 1s
+M,M2.renov×1.5-dem1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem1.0 --periodo 1m
+M,M2.renov×1.5-dem1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem1.0 --periodo 6m
+M,M2.renov×1.5-dem1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem1.0 --periodo 1a
+M,M2.renov×1.5-dem2.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem2.0 --periodo 1d
+M,M2.renov×1.5-dem2.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem2.0 --periodo 1s
+M,M2.renov×1.5-dem2.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem2.0 --periodo 1m
+M,M2.renov×1.5-dem2.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem2.0 --periodo 6m
+M,M2.renov×1.5-dem2.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×1.5-dem2.0 --periodo 1a
+M,M2.renov×2.0-dem1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem1.0 --periodo 1d
+M,M2.renov×2.0-dem1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem1.0 --periodo 1s
+M,M2.renov×2.0-dem1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem1.0 --periodo 1m
+M,M2.renov×2.0-dem1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem1.0 --periodo 6m
+M,M2.renov×2.0-dem1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem1.0 --periodo 1a
+M,M2.renov×2.0-dem2.0,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem2.0 --periodo 1d
+M,M2.renov×2.0-dem2.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem2.0 --periodo 1s
+M,M2.renov×2.0-dem2.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem2.0 --periodo 1m
+M,M2.renov×2.0-dem2.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem2.0 --periodo 6m
+M,M2.renov×2.0-dem2.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M2.renov×2.0-dem2.0 --periodo 1a
+M,M3.A1×0.4,1d,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.4 --periodo 1d
+M,M3.A1×0.4,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.4 --periodo 1s
+M,M3.A1×0.4,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.4 --periodo 1m
+M,M3.A1×0.4,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.4 --periodo 6m
+M,M3.A1×0.4,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.4 --periodo 1a
+M,M3.A1×0.55,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.55 --periodo 1d
+M,M3.A1×0.55,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.55 --periodo 1s
+M,M3.A1×0.55,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.55 --periodo 1m
+M,M3.A1×0.55,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.55 --periodo 6m
+M,M3.A1×0.55,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.55 --periodo 1a
+M,M3.A1×0.7,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.7 --periodo 1d
+M,M3.A1×0.7,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.7 --periodo 1s
+M,M3.A1×0.7,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.7 --periodo 1m
+M,M3.A1×0.7,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.7 --periodo 6m
+M,M3.A1×0.7,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.7 --periodo 1a
+M,M3.A1×0.85,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.85 --periodo 1d
+M,M3.A1×0.85,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.85 --periodo 1s
+M,M3.A1×0.85,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.85 --periodo 1m
+M,M3.A1×0.85,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.85 --periodo 6m
+M,M3.A1×0.85,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×0.85 --periodo 1a
+M,M3.A1×1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×1.0 --periodo 1d
+M,M3.A1×1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×1.0 --periodo 1s
+M,M3.A1×1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×1.0 --periodo 1m
+M,M3.A1×1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×1.0 --periodo 6m
+M,M3.A1×1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A1×1.0 --periodo 1a
+M,M3.A2×0.4,1d,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.4 --periodo 1d
+M,M3.A2×0.4,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.4 --periodo 1s
+M,M3.A2×0.4,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.4 --periodo 1m
+M,M3.A2×0.4,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.4 --periodo 6m
+M,M3.A2×0.4,1a,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.4 --periodo 1a
+M,M3.A2×0.55,1d,7,S1-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.55 --periodo 1d
+M,M3.A2×0.55,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.55 --periodo 1s
+M,M3.A2×0.55,1m,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.55 --periodo 1m
+M,M3.A2×0.55,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.55 --periodo 6m
+M,M3.A2×0.55,1a,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.55 --periodo 1a
+M,M3.A2×0.7,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.7 --periodo 1d
+M,M3.A2×0.7,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.7 --periodo 1s
+M,M3.A2×0.7,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.7 --periodo 1m
+M,M3.A2×0.7,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.7 --periodo 6m
+M,M3.A2×0.7,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.7 --periodo 1a
+M,M3.A2×0.85,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.85 --periodo 1d
+M,M3.A2×0.85,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.85 --periodo 1s
+M,M3.A2×0.85,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.85 --periodo 1m
+M,M3.A2×0.85,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.85 --periodo 6m
+M,M3.A2×0.85,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×0.85 --periodo 1a
+M,M3.A2×1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×1.0 --periodo 1d
+M,M3.A2×1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×1.0 --periodo 1s
+M,M3.A2×1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×1.0 --periodo 1m
+M,M3.A2×1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×1.0 --periodo 6m
+M,M3.A2×1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.A2×1.0 --periodo 1a
+M,M3.SE×0.4,1d,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.4 --periodo 1d
+M,M3.SE×0.4,1s,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.4 --periodo 1s
+M,M3.SE×0.4,1m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.4 --periodo 1m
+M,M3.SE×0.4,6m,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.4 --periodo 6m
+M,M3.SE×0.4,1a,7,S0-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.4 --periodo 1a
+M,M3.SE×0.55,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.55 --periodo 1d
+M,M3.SE×0.55,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.55 --periodo 1s
+M,M3.SE×0.55,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.55 --periodo 1m
+M,M3.SE×0.55,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.55 --periodo 6m
+M,M3.SE×0.55,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.55 --periodo 1a
+M,M3.SE×0.7,1d,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.7 --periodo 1d
+M,M3.SE×0.7,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.7 --periodo 1s
+M,M3.SE×0.7,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.7 --periodo 1m
+M,M3.SE×0.7,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.7 --periodo 6m
+M,M3.SE×0.7,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.7 --periodo 1a
+M,M3.SE×0.85,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.85 --periodo 1d
+M,M3.SE×0.85,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.85 --periodo 1s
+M,M3.SE×0.85,1m,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.85 --periodo 1m
+M,M3.SE×0.85,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.85 --periodo 6m
+M,M3.SE×0.85,1a,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×0.85 --periodo 1a
+M,M3.SE×1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×1.0 --periodo 1d
+M,M3.SE×1.0,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×1.0 --periodo 1s
+M,M3.SE×1.0,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×1.0 --periodo 1m
+M,M3.SE×1.0,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×1.0 --periodo 6m
+M,M3.SE×1.0,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M3.SE×1.0 --periodo 1a
+M,M4.dem0.1-con-eolica,1d,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-eolica --periodo 1d
+M,M4.dem0.1-con-eolica,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-eolica --periodo 1s
+M,M4.dem0.1-con-eolica,1m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-eolica --periodo 1m
+M,M4.dem0.1-con-eolica,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-eolica --periodo 6m
+M,M4.dem0.1-con-eolica,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-eolica --periodo 1a
+M,M4.dem0.1-con-solar,1d,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-solar --periodo 1d
+M,M4.dem0.1-con-solar,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-solar --periodo 1s
+M,M4.dem0.1-con-solar,1m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-solar --periodo 1m
+M,M4.dem0.1-con-solar,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-solar --periodo 6m
+M,M4.dem0.1-con-solar,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-con-solar --periodo 1a
+M,M4.dem0.1-sin-eolica,1d,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-eolica --periodo 1d
+M,M4.dem0.1-sin-eolica,1s,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-eolica --periodo 1s
+M,M4.dem0.1-sin-eolica,1m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-eolica --periodo 1m
+M,M4.dem0.1-sin-eolica,6m,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-eolica --periodo 6m
+M,M4.dem0.1-sin-eolica,1a,7,S1,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-eolica --periodo 1a
+M,M4.dem0.1-sin-solar,1d,7,S3,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-solar --periodo 1d
+M,M4.dem0.1-sin-solar,1s,7,S3,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-solar --periodo 1s
+M,M4.dem0.1-sin-solar,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-solar --periodo 1m
+M,M4.dem0.1-sin-solar,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-solar --periodo 6m
+M,M4.dem0.1-sin-solar,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem0.1-sin-solar --periodo 1a
+M,M4.dem1.0-con-eolica,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-eolica --periodo 1d
+M,M4.dem1.0-con-eolica,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-eolica --periodo 1s
+M,M4.dem1.0-con-eolica,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-eolica --periodo 1m
+M,M4.dem1.0-con-eolica,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-eolica --periodo 6m
+M,M4.dem1.0-con-eolica,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-eolica --periodo 1a
+M,M4.dem1.0-con-solar,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-solar --periodo 1d
+M,M4.dem1.0-con-solar,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-solar --periodo 1s
+M,M4.dem1.0-con-solar,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-solar --periodo 1m
+M,M4.dem1.0-con-solar,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-solar --periodo 6m
+M,M4.dem1.0-con-solar,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-con-solar --periodo 1a
+M,M4.dem1.0-sin-eolica,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-eolica --periodo 1d
+M,M4.dem1.0-sin-eolica,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-eolica --periodo 1s
+M,M4.dem1.0-sin-eolica,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-eolica --periodo 1m
+M,M4.dem1.0-sin-eolica,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-eolica --periodo 6m
+M,M4.dem1.0-sin-eolica,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-eolica --periodo 1a
+M,M4.dem1.0-sin-solar,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-solar --periodo 1d
+M,M4.dem1.0-sin-solar,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-solar --periodo 1s
+M,M4.dem1.0-sin-solar,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-solar --periodo 1m
+M,M4.dem1.0-sin-solar,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-solar --periodo 6m
+M,M4.dem1.0-sin-solar,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.0-sin-solar --periodo 1a
+M,M4.dem1.6-con-eolica,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-eolica --periodo 1d
+M,M4.dem1.6-con-eolica,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-eolica --periodo 1s
+M,M4.dem1.6-con-eolica,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-eolica --periodo 1m
+M,M4.dem1.6-con-eolica,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-eolica --periodo 6m
+M,M4.dem1.6-con-eolica,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-eolica --periodo 1a
+M,M4.dem1.6-con-solar,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-solar --periodo 1d
+M,M4.dem1.6-con-solar,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-solar --periodo 1s
+M,M4.dem1.6-con-solar,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-solar --periodo 1m
+M,M4.dem1.6-con-solar,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-solar --periodo 6m
+M,M4.dem1.6-con-solar,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-con-solar --periodo 1a
+M,M4.dem1.6-sin-eolica,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-eolica --periodo 1d
+M,M4.dem1.6-sin-eolica,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-eolica --periodo 1s
+M,M4.dem1.6-sin-eolica,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-eolica --periodo 1m
+M,M4.dem1.6-sin-eolica,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-eolica --periodo 6m
+M,M4.dem1.6-sin-eolica,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-eolica --periodo 1a
+M,M4.dem1.6-sin-solar,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-solar --periodo 1d
+M,M4.dem1.6-sin-solar,1s,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-solar --periodo 1s
+M,M4.dem1.6-sin-solar,1m,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-solar --periodo 1m
+M,M4.dem1.6-sin-solar,6m,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-solar --periodo 6m
+M,M4.dem1.6-sin-solar,1a,7,S3-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M4.dem1.6-sin-solar --periodo 1a
+M,M5.red×0.5,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×0.5 --periodo 1d
+M,M5.red×0.5,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×0.5 --periodo 1s
+M,M5.red×0.5,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×0.5 --periodo 1m
+M,M5.red×0.5,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×0.5 --periodo 6m
+M,M5.red×0.5,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×0.5 --periodo 1a
+M,M5.red×1.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×1.0 --periodo 1d
+M,M5.red×1.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×1.0 --periodo 1s
+M,M5.red×1.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×1.0 --periodo 1m
+M,M5.red×1.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×1.0 --periodo 6m
+M,M5.red×1.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×1.0 --periodo 1a
+M,M5.red×2.0,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×2.0 --periodo 1d
+M,M5.red×2.0,1s,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×2.0 --periodo 1s
+M,M5.red×2.0,1m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×2.0 --periodo 1m
+M,M5.red×2.0,6m,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×2.0 --periodo 6m
+M,M5.red×2.0,1a,7,S2-CONT,aprobada,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso M5.red×2.0 --periodo 1a
+REF,REF.normal,1d,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal --periodo 1d
+REF,REF.normal,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal --periodo 1s
+REF,REF.normal,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal --periodo 1m
+REF,REF.normal,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal --periodo 6m
+REF,REF.normal,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal --periodo 1a
+REF,REF.normal-jueves,1s,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal-jueves --periodo 1s
+REF,REF.normal-jueves,1m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal-jueves --periodo 1m
+REF,REF.normal-jueves,6m,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal-jueves --periodo 6m
+REF,REF.normal-jueves,1a,7,S2,aprobada,OK,OK,OK,OK,NA,OK,OK,OK,OK,OK,OK,NA,,,,python pruebas_adversas.py --caso REF.normal-jueves --periodo 1a
+REF,REF.mape-fin-de-semana,"1d,1s,1m,6m,1a",7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A10),A10,1s: MAPE 20.31 % > 15.0 % (entre semana 6.41 %); 1m: MAPE 19.25 % > 15.0 % (entre semana 5.88 %); 6m: MAPE 19.13 % > 15.0 % (entre semana 6.19 %); 1a: MAPE 19.08 % > 15.0 % (entre semana 5.94 %),1s: MAPE 20.31 % validando sábado vs 6.41 % validando miércoles | 1m: MAPE 19.25 % validando sábado vs 5.88 % validando miércoles | 6m: MAPE 19.13 % validando sábado vs 6.19 % validando miércoles | 1a: MAPE 19.08 % validando sábado vs 5.94 % validando miércoles,python pruebas_adversas.py Defectos.test_A10_pronostico_ignora_fin_de_semana
+F7,F7.api-periodo-lista,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A7),A7,"500: {'error': ""Error interno: unhashable type: 'list'""}",periodo como lista → 500,python pruebas_adversas.py F7API
+F7,F7.api-condicion-objeto,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A7),A7,"500: {'error': ""Error interno: unhashable type: 'dict'""}",condición como objeto → 500,python pruebas_adversas.py F7API
+F7,F7.api-content-length-texto,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A7),A7,"500: {'error': ""Error interno: invalid literal for int() with base 10: 'abc'""}",Content-Length no numérico → 500,python pruebas_adversas.py F7API
+F7,F7.api-content-length-negativo,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FALLA(A7),A7,500: {'error': 'Error interno: read length must be non-negative or -1'},Content-Length negativo → 500,python pruebas_adversas.py F7API
+F7,F7.api-20-concurrentes,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"p50 2.79 s, p95 4.96 s, máx 5.53 s",python pruebas_adversas.py F7API
+F7,F7.api-crec-250,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,crecimiento_pct = 250 → 400,python pruebas_adversas.py F7API
+F7,F7.api-crec-menos60,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,crecimiento_pct = −60 → 400,python pruebas_adversas.py F7API
+F7,F7.api-crec-texto,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,crecimiento_pct como texto → 400,python pruebas_adversas.py F7API
+F7,F7.api-alim-A3,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,alimentador inválido → 400,python pruebas_adversas.py F7API
+F7,F7.api-json-malformado,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,JSON malformado → 400,python pruebas_adversas.py F7API
+F7,F7.api-cuerpo-11kb,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,cuerpo de 11 KB → 413,python pruebas_adversas.py F7API
+F7,F7.api-json-lista,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,cuerpo JSON que no es objeto → 400,python pruebas_adversas.py F7API
+F7,F7.api-semilla-negativa,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,semilla negativa → 400,python pruebas_adversas.py F7API
+F7,F7.api-falla-invalida,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,falla inexistente → 400,python pruebas_adversas.py F7API
+F7,F7.api-ruta-inexistente,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,ruta desconocida → 404,python pruebas_adversas.py F7API
+F7,F7.api-sesion-inexistente,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,sesión inexistente → 404,python pruebas_adversas.py F7API
+F7,F7.api-metodo,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,GET en aprobación → 405,python pruebas_adversas.py F7API
+F7,F7.api-motivo-501,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,motivo de 501 caracteres → 400,python pruebas_adversas.py F7API
+F7,F7.api-operador-no-texto,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,operador numérico → 400,python pruebas_adversas.py F7API
+F7,F7.api-aprobado-texto,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,aprobado como texto → 400,python pruebas_adversas.py F7API
+M,M1 Más demanda nunca reduce el déficit de S0 ni el recorte propuesto.,1d,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"cap 1.0: déficit S0 [0, 0, 867, 8925, 31944], recorte [0, 0, 0, 4811, 31546] | cap 0.55: déficit S0 [1499, 9986, 25015, 48920, 78612], recorte [0, 8155, 25015, 48920, 78612]",python pruebas_adversas.py --relacion M1 --periodo 1d
+M,M1 Más demanda nunca reduce el déficit de S0 ni el recorte propuesto.,1s,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"cap 1.0: déficit S0 [0, 0, 5151, 24826, 55563], recorte [0, 0, 1717, 24422, 55563] | cap 0.55: déficit S0 [4798, 20969, 41029, 68803, 103317], recorte [2318, 20852, 41029, 68803, 103317]",python pruebas_adversas.py --relacion M1 --periodo 1s
+M,M1 Más demanda nunca reduce el déficit de S0 ni el recorte propuesto.,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"cap 1.0: déficit S0 [0, 0, 5400, 25320, 56001], recorte [0, 0, 1979, 24898, 56001] | cap 0.55: déficit S0 [5256, 21561, 41555, 69272, 103731], recorte [2788, 21464, 41555, 69272, 103731]",python pruebas_adversas.py --relacion M1 --periodo 1m
+M,M1 Más demanda nunca reduce el déficit de S0 ni el recorte propuesto.,6m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"cap 1.0: déficit S0 [0, 0, 5235, 25070, 55614], recorte [0, 0, 1904, 24550, 55614] | cap 0.55: déficit S0 [5164, 21428, 41347, 68975, 103326], recorte [2700, 21255, 41347, 68975, 103326]",python pruebas_adversas.py --relacion M1 --periodo 6m
+M,M1 Más demanda nunca reduce el déficit de S0 ni el recorte propuesto.,1a,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"cap 1.0: déficit S0 [0, 0, 5199, 25081, 55762], recorte [0, 0, 1880, 24609, 55762] | cap 0.55: déficit S0 [5047, 21367, 41348, 69056, 103502], recorte [2599, 21236, 41348, 69056, 103502]",python pruebas_adversas.py --relacion M1 --periodo 1a
+M,M2 Más renovable disponible nunca aumenta la convencional ni el costo de S0.,1d,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"dem 1.0: conv [59401, 54209, 49017, 43825, 39092], costo [122213, 113745, 105278, 96810, 89086], déficit [0, 0, 0, 0, 0] | dem 2.0: conv [101083, 100369, 99492, 96320, 92797], costo [201964, 202445, 202626, 198572, 193768], déficit [17718, 13240, 8925, 6906, 5695]; costo total literal sube con déficit en 2 pasos (más energía servida)",python pruebas_adversas.py --relacion M2 --periodo 1d
+M,M2 Más renovable disponible nunca aumenta la convencional ni el costo de S0.,1s,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"dem 1.0: conv [69071, 64144, 59218, 54291, 49392], costo [141460, 133519, 125577, 117636, 109740], déficit [0, 0, 0, 0, 0] | dem 2.0: conv [104625, 104172, 103463, 102600, 100604], costo [206681, 207459, 207909, 208080, 206154], déficit [33517, 29044, 24826, 20762, 17860]; costo total literal sube con déficit en 3 pasos (más energía servida)",python pruebas_adversas.py --relacion M2 --periodo 1s
+M,M2 Más renovable disponible nunca aumenta la convencional ni el costo de S0.,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"dem 1.0: conv [68975, 64385, 59795, 55204, 50614], costo [141268, 133879, 126489, 119100, 111710], déficit [0, 0, 0, 0, 0] | dem 2.0: conv [104607, 104103, 103450, 102702, 101263], costo [206672, 207310, 207767, 208047, 207052], déficit [33344, 29258, 25320, 21477, 18326]; costo total literal sube con déficit en 3 pasos (más energía servida)",python pruebas_adversas.py --relacion M2 --periodo 1m
+M,M2 Más renovable disponible nunca aumenta la convencional ni el costo de S0.,6m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"dem 1.0: conv [68745, 64231, 59718, 55204, 50691], costo [140865, 133530, 126194, 118858, 111522], déficit [0, 0, 0, 0, 0] | dem 2.0: conv [104512, 104010, 103393, 102633, 101218], costo [206531, 207148, 207633, 207855, 206869], déficit [32977, 28966, 25070, 21316, 18218]; costo total literal sube con déficit en 3 pasos (más energía servida)",python pruebas_adversas.py --relacion M2 --periodo 6m
+M,M2 Más renovable disponible nunca aumenta la convencional ni el costo de S0.,1a,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"dem 1.0: conv [68944, 64272, 59600, 54929, 50257], costo [141169, 133619, 126069, 118519, 110969], déficit [0, 0, 0, 0, 0] | dem 2.0: conv [104650, 104163, 103463, 102675, 101204], costo [206785, 207467, 207855, 208081, 207048], déficit [33237, 29052, 25081, 21197, 17996]; costo total literal sube con déficit en 3 pasos (más energía servida)",python pruebas_adversas.py --relacion M2 --periodo 1a
+M,M3 Menos capacidad (subestación o alimentador) nunca reduce el déficit de S0.,1d,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"SE: déficit S0 [0, 243, 2785, 9986, 23455] | A1: déficit S0 [0, 0, 0, 2478, 10213] | A2: déficit S0 [0, 0, 210, 1659, 4550]",python pruebas_adversas.py --relacion M3 --periodo 1d
+M,M3 Menos capacidad (subestación o alimentador) nunca reduce el déficit de S0.,1s,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"SE: déficit S0 [0, 2160, 9544, 20969, 36623] | A1: déficit S0 [0, 0, 4269, 11310, 20978] | A2: déficit S0 [0, 0, 188, 1827, 5338]",python pruebas_adversas.py --relacion M3 --periodo 1s
+M,M3 Menos capacidad (subestación o alimentador) nunca reduce el déficit de S0.,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"SE: déficit S0 [0, 2276, 10075, 21561, 37177] | A1: déficit S0 [0, 0, 4317, 11364, 21077] | A2: déficit S0 [0, 0, 165, 1889, 5525]",python pruebas_adversas.py --relacion M3 --periodo 1m
+M,M3 Menos capacidad (subestación o alimentador) nunca reduce el déficit de S0.,6m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"SE: déficit S0 [0, 2112, 9933, 21428, 37040] | A1: déficit S0 [0, 0, 4207, 11325, 20985] | A2: déficit S0 [0, 0, 208, 1870, 5541]",python pruebas_adversas.py --relacion M3 --periodo 6m
+M,M3 Menos capacidad (subestación o alimentador) nunca reduce el déficit de S0.,1a,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"SE: déficit S0 [0, 2206, 9856, 21367, 36979] | A1: déficit S0 [0, 0, 4144, 11173, 20869] | A2: déficit S0 [0, 0, 152, 1836, 5493]",python pruebas_adversas.py --relacion M3 --periodo 1a
+M,M4 Quitar la renovable de un alimentador nunca mejora su margen.,1d,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,dem 1.0 A2: 43.35 → 43.35 % | dem 1.0 A1: 49.01 → 42.46 % | dem 1.6 A2: 9.36 → 9.36 % | dem 1.6 A1: 14.49 → 7.94 % | dem 0.1 A2: 94.33 → 94.33 % | dem 0.1 A1: 96.18 → 94.25 %,python pruebas_adversas.py --relacion M4 --periodo 1d
+M,M4 Quitar la renovable de un alimentador nunca mejora su margen.,1s,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,dem 1.0 A2: 43.76 → 43.76 % | dem 1.0 A1: 37.77 → 29.8 % | dem 1.6 A2: 10.02 → 10.02 % | dem 1.6 A1: -4.35 → -12.32 % | dem 0.1 A2: 94.38 → 94.38 % | dem 0.1 A1: 96.52 → 92.98 %,python pruebas_adversas.py --relacion M4 --periodo 1s
+M,M4 Quitar la renovable de un alimentador nunca mejora su margen.,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,dem 1.0 A2: 43.84 → 43.84 % | dem 1.0 A1: 36.48 → 28.78 % | dem 1.6 A2: 10.14 → 10.14 % | dem 1.6 A1: -6.25 → -13.95 % | dem 0.1 A2: 94.38 → 94.38 % | dem 0.1 A1: 97.21 → 92.88 %,python pruebas_adversas.py --relacion M4 --periodo 1m
+M,M4 Quitar la renovable de un alimentador nunca mejora su margen.,6m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,dem 1.0 A2: 43.62 → 43.62 % | dem 1.0 A1: 36.87 → 30.32 % | dem 1.6 A2: 9.79 → 9.79 % | dem 1.6 A1: -4.94 → -11.49 % | dem 0.1 A2: 94.36 → 94.36 % | dem 0.1 A1: 96.99 → 93.03 %,python pruebas_adversas.py --relacion M4 --periodo 6m
+M,M4 Quitar la renovable de un alimentador nunca mejora su margen.,1a,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,dem 1.0 A2: 44.18 → 44.18 % | dem 1.0 A1: 36.58 → 28.87 % | dem 1.6 A2: 10.68 → 10.68 % | dem 1.6 A1: -6.09 → -13.81 % | dem 0.1 A2: 94.42 → 94.42 % | dem 0.1 A1: 97.38 → 92.89 %,python pruebas_adversas.py --relacion M4 --periodo 1a
+M,M5 Escalar demanda y capacidades por el mismo factor no cambia el % de recorte (±1 punto).,1d,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"recorte % ×1.0: 0.00, ×0.5: 0.00, ×2.0: 0.00",python pruebas_adversas.py --relacion M5 --periodo 1d
+M,M5 Escalar demanda y capacidades por el mismo factor no cambia el % de recorte (±1 punto).,1s,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"recorte % ×1.0: 3.36, ×0.5: 3.36, ×2.0: 3.36",python pruebas_adversas.py --relacion M5 --periodo 1s
+M,M5 Escalar demanda y capacidades por el mismo factor no cambia el % de recorte (±1 punto).,1m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"recorte % ×1.0: 4.04, ×0.5: 4.04, ×2.0: 4.04",python pruebas_adversas.py --relacion M5 --periodo 1m
+M,M5 Escalar demanda y capacidades por el mismo factor no cambia el % de recorte (±1 punto).,6m,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"recorte % ×1.0: 3.93, ×0.5: 3.93, ×2.0: 3.93",python pruebas_adversas.py --relacion M5 --periodo 6m
+M,M5 Escalar demanda y capacidades por el mismo factor no cambia el % de recorte (±1 punto).,1a,7,-,-,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,OK,,,"recorte % ×1.0: 3.77, ×0.5: 3.77, ×2.0: 3.77",python pruebas_adversas.py --relacion M5 --periodo 1a

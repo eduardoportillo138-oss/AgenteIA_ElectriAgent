@@ -320,10 +320,12 @@ class AgenteDeliberativo(Agente):
       P90 -> desfavorable: demanda P90 y renovables P10
     Una estrategia es robusta si no deja déficit en P90."""
 
-    def __init__(self, *a, red: RedDistribucion, fallar: bool = False, **k):
+    def __init__(self, *a, red: RedDistribucion, fallar: bool = False,
+                 condicion_personalizada: dict | None = None, **k):
         super().__init__(*a, **k)
         self.red = red
         self.fallar = fallar
+        self.condicion_personalizada = condicion_personalizada   # gancho de pruebas (motor.crear_sistema)
 
     # -- Pronósticos del día con la condición de la red
     def _contexto(self, analisis: dict, cond: dict) -> Contexto:
@@ -518,7 +520,8 @@ class AgenteDeliberativo(Agente):
             raise RuntimeError("el simulador de escenarios no respondió (falla simulada)")
 
         analisis = self.pizarra.leer("analisis")
-        cond = resolver(msg.contenido["condicion"], **msg.contenido.get("parametros", {}))
+        cond = (dict(self.condicion_personalizada) if self.condicion_personalizada is not None
+                else resolver(msg.contenido["condicion"], **msg.contenido.get("parametros", {})))
         excluir = set(msg.contenido.get("excluir", []))
         ronda = msg.contenido.get("ronda", 0)
         ctx = self._contexto(analisis, cond)

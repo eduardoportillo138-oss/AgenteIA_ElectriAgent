@@ -112,6 +112,74 @@ def resolver(condicion: str, alimentador: str | None = None,
     return c
 
 
+# --------------------------------------------- Gancho de pruebas (no expuesto)
+# Solo lo usa crear_sistema(condicion_personalizada=...) desde las pruebas adversas.
+# No está en la API, la web ni la app. Los límites salen del catálogo:
+#   demanda: 0 .. 1 + 200 % (tope de crecimiento_pct); 0 permite probar demanda nula
+#   renovable: 0 .. 2 (fuente fuera de servicio hasta el doble del pronóstico)
+#   capacidad y factor_alimentador: (0, 1] (fallas; nunca más capacidad de la nominal)
+TIPOS_CARGA = ("residencial", "comercial", "industrial", "servicio", "critica")
+TIPOS_RENOVABLE = ("solar", "eolica")
+FACTOR_DEMANDA_MAX = 1 + 200 / 100
+FACTOR_RENOVABLE_MAX = 2.0
+
+
+def _factor(valor, minimo: float, maximo: float, nombre: str):
+    """Escalar o lista de 24 factores horarios dentro de [minimo, maximo]."""
+    arr = np.asarray(valor, dtype=float)
+    if arr.ndim not in (0, 1) or (arr.ndim == 1 and arr.shape != (24,)):
+        raise ValueError(f"{nombre}: debe ser un número o 24 valores horarios")
+    if not np.all(np.isfinite(arr)) or arr.min() < minimo or arr.max() > maximo:
+        raise ValueError(f"{nombre}: los factores deben estar entre {minimo:g} y {maximo:g}")
+    return float(arr) if arr.ndim == 0 else arr
+
+
+def validar_personalizada(datos: dict) -> dict:
+    """Condición de prueba con factores de demanda por tipo de carga y de renovables
+    por fuente, escalares o por hora. Devuelve una condición resuelta como las del catálogo."""
+    if not isinstance(datos, dict):
+        raise ValueError("La condición personalizada debe ser un diccionario")
+    permitidas = {"desc", "demanda", "renovable", "capacidad", "alimentador", "factor_alimentador",
+                  "crecimiento_pct", "horas"}
+    sobran = set(datos) - permitidas
+    if sobran:
+        raise ValueError(f"Claves no válidas en la condición personalizada: {sorted(sobran)}")
+    c = {"id": "personalizada", "desc": str(datos.get("desc", "Condición personalizada (prueba)")),
+         "descripcion": "Condición de prueba (gancho no expuesto en la API).",
+         "demanda": {}, "capacidad": 1.0}
+    for tipo, v in (datos.get("demanda") or {}).items():
+        if tipo not in TIPOS_CARGA:
+            raise ValueError(f"Tipo de carga no válido: {tipo}")
+        c["demanda"][tipo] = _factor(v, 0.0, FACTOR_DEMANDA_MAX, f"demanda[{tipo}]")
+    if datos.get("renovable"):
+        c["renovable"] = {}
+        for tipo, v in datos["renovable"].items():
+            if tipo not in TIPOS_RENOVABLE:
+                raise ValueError(f"Fuente renovable no válida: {tipo}")
+            c["renovable"][tipo] = _factor(v, 0.0, FACTOR_RENOVABLE_MAX, f"renovable[{tipo}]")
+    if "horas" in datos:
+        horas = sorted({int(h) for h in datos["horas"]})
+        if not horas or horas[0] < 0 or horas[-1] > 23:
+            raise ValueError("Las horas deben estar entre 0 y 23")
+        if any(np.ndim(v) for v in c["demanda"].values()):
+            raise ValueError("Con 'horas' los factores de demanda deben ser escalares")
+        c["horas"] = horas
+    if "crecimiento_pct" in datos:
+        crec = float(datos["crecimiento_pct"])
+        if not -50 <= crec <= 200:
+            raise ValueError("El crecimiento debe estar entre -50 % y 200 %")
+        c["crecimiento_pct"] = crec
+    c["capacidad"] = float(_factor(datos.get("capacidad", 1.0), 1e-6, 1.0, "capacidad"))
+    if "alimentador" in datos or "factor_alimentador" in datos:
+        alim = datos.get("alimentador", "A1")
+        if alim not in ALIMENTADORES_FALLA:
+            raise ValueError(f"Alimentador no válido: {alim}")
+        c["alimentador"] = alim
+        c["factor_alimentador"] = float(_factor(datos.get("factor_alimentador", 0.45), 1e-6, 1.0,
+                                                "factor_alimentador"))
+    return c
+
+
 def parametros(c: dict) -> dict:
     """Parámetros numéricos de la condición (para mostrar y para la bitácora)."""
     p = {"factor_capacidad_subestacion": c.get("capacidad", 1.0)}
