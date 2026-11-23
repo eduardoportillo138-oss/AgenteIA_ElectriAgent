@@ -659,6 +659,35 @@ def prueba_h4_firma_web():
     print("OK  H4: la web firma cada decisión; la firma queda en historial, pizarra, reporte y bitácora")
 
 
+# ------------------------------------------------ H5: modo auto silencioso con verbose=False
+def prueba_h5_auto_silencioso():
+    """Con verbose=False, el modo auto (con y sin rechazos) no escribe nada en stdout; el modo
+    interactivo sigue mostrando la propuesta y pidiendo la decisión."""
+    import builtins
+    import tempfile
+    from motor import crear_sistema
+    for rechazos in (0, 1):
+        s = crear_sistema(periodo="1s", condicion="ola_calor", modo="auto", rechazos=rechazos,
+                          verbose=False, salida=tempfile.mkdtemp(prefix="electriagent_"))
+        salida = io.StringIO()
+        with contextlib.redirect_stdout(salida):
+            s.iniciar()
+        assert s.terminado and salida.getvalue() == "", repr(salida.getvalue()[:200])
+    s = crear_sistema(periodo="1s", condicion="normal", modo="interactivo", verbose=False,
+                      salida=tempfile.mkdtemp(prefix="electriagent_"))
+    preguntas = []
+    original = builtins.input
+    builtins.input = lambda texto="": preguntas.append(texto) or "s"
+    salida = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(salida):
+            s.iniciar()
+    finally:
+        builtins.input = original
+    assert "PROPUESTA PARA APROBACIÓN" in salida.getvalue() and preguntas and s.terminado
+    print("OK  H5: con verbose=False el modo auto no imprime; el interactivo sigue mostrando la propuesta")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -679,4 +708,5 @@ if __name__ == "__main__":
         prueba_h2_politica_recorte()
         prueba_h3_web_con_token()
         prueba_h4_firma_web()
+        prueba_h5_auto_silencioso()
     print("\nTodas las pruebas pasaron.")

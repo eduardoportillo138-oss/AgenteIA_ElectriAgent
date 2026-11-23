@@ -928,6 +928,12 @@ class AprobacionHumana(Agente):
         else:
             self.enviar("C", P.REJECT, {"escenario": escenario, "motivo": motivo, "operador": operador}, conv)
 
+    def _mostrar(self, texto: str):
+        """Imprime la propuesta en consola. En modo interactivo siempre (la persona debe
+        verla para decidir); en modo automático solo si el bus es verbose."""
+        if self.modo == "interactivo" or self.bus.verbose:
+            print(texto)
+
     def procesar(self, msg: Mensaje):
         decision = self.pizarra.leer("decision")
         if decision["escenario"] is None:          # escalamiento: no hay propuesta que aprobar
@@ -944,15 +950,15 @@ class AprobacionHumana(Agente):
             self.log(f"propuesta {esc.id} en espera de la decisión del operador")
             return
 
-        print("\n" + "-" * 70)
-        print(f"  PROPUESTA PARA APROBACIÓN  [{esc.id}] {esc.nombre}")
-        print(f"  Modo: {decision['modo']} | Riesgo máximo: {ev['riesgo_max']} ({ev['categoria_max']})")
-        print(f"  Costo: {m['costo_mxn']:,.0f} MXN | Renovables: {m['renovable_pct']} % | "
-              f"Desplazado: {m['desplazado_kwh']:,.0f} kWh | Recorte parcial: {m['recorte_kwh']:,.0f} kWh | "
-              f"{'Robusta' if esc.robusto else 'No robusta'} ante P90")
+        self._mostrar("\n" + "-" * 70)
+        self._mostrar(f"  PROPUESTA PARA APROBACIÓN  [{esc.id}] {esc.nombre}")
+        self._mostrar(f"  Modo: {decision['modo']} | Riesgo máximo: {ev['riesgo_max']} ({ev['categoria_max']})")
+        self._mostrar(f"  Costo: {m['costo_mxn']:,.0f} MXN | Renovables: {m['renovable_pct']} % | "
+                      f"Desplazado: {m['desplazado_kwh']:,.0f} kWh | Recorte parcial: {m['recorte_kwh']:,.0f} kWh | "
+                      f"{'Robusta' if esc.robusto else 'No robusta'} ante P90")
         for j in decision["justificacion"]:
-            print("   -", j)
-        print("-" * 70)
+            self._mostrar(f"   - {j}")
+        self._mostrar("-" * 70)
 
         if self.modo == "interactivo":
             resp = input("  ¿Aprueba la recomendación? (s/n): ").strip().lower()
@@ -962,7 +968,7 @@ class AprobacionHumana(Agente):
             aprobado = self.rechazos_auto <= 0
             motivo = "" if aprobado else "Rechazo de prueba: se solicita una alternativa menos invasiva"
             self.rechazos_auto -= 1
-            print(f"  (modo automático) {'APROBADO' if aprobado else 'RECHAZADO'}")
+            self._mostrar(f"  (modo automático) {'APROBADO' if aprobado else 'RECHAZADO'}")
 
         self._registrar(esc.id, aprobado, motivo, msg.conversacion)
 
