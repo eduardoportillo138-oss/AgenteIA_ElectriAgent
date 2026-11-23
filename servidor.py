@@ -178,6 +178,9 @@ def vista(sid: str, s: Sistema) -> dict:
             "evaluacion_iso": evals.get(esc.id),
             "robusto": esc.robusto,
             "hay_alternativa_robusta": decision.get("hay_alternativa_robusta"),
+            # Política de recorte: kWh que recorta de más el plan robusto P90 frente al mínimo
+            "recorte_adicional_robustez_kwh": esc.metricas.get("recorte_adicional_robustez_kwh"),
+            "alternativa_robusta": esc.metricas.get("alternativa_robusta"),
             "base_planificacion": esc.base_planificacion,
             "metricas_p90": esc.metricas_p90,
             "alimentadores": esc.metricas["alimentadores"],
@@ -219,6 +222,7 @@ def vista(sid: str, s: Sistema) -> dict:
             "recorte_kwh": e.metricas["recorte_kwh"], "robusto": e.robusto,
             "deficit_p90_kwh": e.metricas["deficit_p90_kwh"],
             "utilizacion_max_pct": e.metricas["utilizacion_max_pct"],
+            "recorte_adicional_robustez_kwh": e.metricas.get("recorte_adicional_robustez_kwh"),
         } for e in escenarios.values()],
         "trazabilidad": evaluacion["trazabilidad"] if evaluacion else None,
         "historial": s.aprobacion.historial,
@@ -378,7 +382,7 @@ class Manejador(BaseHTTPRequestHandler):
             if ruta.startswith("/api/"):
                 if not self._autorizado():
                     raise ErrorAPI(HTTPStatus.UNAUTHORIZED, "Falta el token de acceso o es incorrecto. "
-                                                            "Revisa el token en los ajustes de la app.")
+                                                            "Usa el valor de ELECTRIAGENT_TOKEN del servidor.")
                 return self._api(metodo, ruta)
             if metodo != "GET":
                 raise ErrorAPI(HTTPStatus.METHOD_NOT_ALLOWED, "Método no permitido")

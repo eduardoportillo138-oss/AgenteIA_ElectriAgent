@@ -1,6 +1,6 @@
 // Service worker de ElectriAgent: guarda la interfaz para abrirla sin conexión.
 // Los datos (/api) siempre se piden al servidor: un análisis nunca sale de caché.
-const CACHE = "electriagent-v2";
+const CACHE = "electriagent-v3";
 const INTERFAZ = ["./", "index.html", "estilos.css", "app.js", "manifest.webmanifest",
                   "icono-192.png", "icono-512.png", "favicon.png", "apple-touch-icon.png"];
 

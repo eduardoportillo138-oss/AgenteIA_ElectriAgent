@@ -42,16 +42,95 @@ function rangos(horas) {
   return out.join(", ");
 }
 
-async function pedir(ruta, opciones = {}) {
-  let r;
+// ------------------------------------------------------------ token de acceso (ELECTRIAGENT_TOKEN)
+// Se guarda en sessionStorage: dura lo que la pestaña y no queda en el equipo.
+const CLAVE_TOKEN = "electriagent.token";
+function leerToken() {
+  try { return sessionStorage.getItem(CLAVE_TOKEN) || ""; } catch { return ""; }
+}
+function guardarToken(t) {
+  try { t ? sessionStorage.setItem(CLAVE_TOKEN, t) : sessionStorage.removeItem(CLAVE_TOKEN); } catch { /* sin almacenamiento */ }
+}
+
+class ErrorAcceso extends Error {}
+
+// Nombre de quien firma las decisiones: el único dato personal que guarda la web (localStorage)
+const CLAVE_OPERADOR = "electriagent.operador";
+function leerOperador() {
+  try { return localStorage.getItem(CLAVE_OPERADOR) || ""; } catch { return ""; }
+}
+function guardarOperador(n) {
+  try { n ? localStorage.setItem(CLAVE_OPERADOR, n) : localStorage.removeItem(CLAVE_OPERADOR); } catch { /* sin almacenamiento */ }
+}
+
+function cabeceras(extra = {}) {
+  const t = leerToken();
+  return { ...extra, ...(t ? { Authorization: `Bearer ${t}` } : {}) };
+}
+
+async function llamar(ruta, opciones = {}) {
   try {
-    r = await fetch(API + ruta, { headers: { "Content-Type": "application/json" }, ...opciones });
+    return await fetch(API + ruta, { ...opciones, headers: cabeceras(opciones.headers) });
   } catch {
     throw new Error("No hay conexión con el servidor de ElectriAgent. Revisa que servidor.py esté en ejecución.");
   }
+}
+
+async function pedir(ruta, opciones = {}) {
+  const r = await llamar(ruta, { ...opciones, headers: { "Content-Type": "application/json" } });
   const datos = await r.json().catch(() => ({}));
+  if (r.status === 401) {
+    pedirToken(datos.error || "El servidor pide un token de acceso.");
+    throw new ErrorAcceso(datos.error || "Falta el token de acceso o es incorrecto.");
+  }
   if (!r.ok) throw new Error(datos.error || `El servidor respondió ${r.status}`);
   return datos;
+}
+
+/** Descarga un JSON de la API con la cabecera de autorización (un <a href> no puede llevarla). */
+async function descargar(ruta, nombre, boton) {
+  boton.disabled = true;
+  try {
+    const r = await llamar(ruta);
+    if (r.status === 401) {
+      const d = await r.json().catch(() => ({}));
+      pedirToken(d.error || "El servidor pide un token de acceso.");
+      return;
+    }
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      throw new Error(d.error || `El servidor respondió ${r.status}`);
+    }
+    const url = URL.createObjectURL(await r.blob());
+    const a = h("a", { href: url, download: nombre });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    $("circuito-estado").textContent = e.message;
+  } finally {
+    boton.disabled = false;
+  }
+}
+
+/** Muestra el formulario del token con el mensaje del servidor (solo tras un 401). */
+function pedirToken(mensaje) {
+  const caja = $("form-acceso");
+  caja.hidden = false;
+  $("acceso-error").textContent = leerToken() ? `${mensaje} Revisa el token e inténtalo de nuevo.` : mensaje;
+  $("token").value = "";
+  $("token").focus();
+}
+
+function prepararAcceso() {
+  $("form-acceso").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    guardarToken($("token").value.trim());
+    $("acceso-error").textContent = "";
+    if (!estado.config) await iniciar();
+    else $("form-acceso").hidden = true;
+  });
 }
 
 // ------------------------------------------------------------ grafo A-H
@@ -271,6 +350,12 @@ function pintarDecision(ses) {
     if (p.modo === "contingencia") {
       hijos.push(h("p", { class: "error" }, "La demanda prevista supera la capacidad disponible. Esta propuesta recorta parcialmente cargas no críticas, solo los kW necesarios y por prioridad; el hospital conserva el 100 % de su suministro."));
     }
+    // Política de recorte: mínimo por omisión; el plan robusto P90 se ofrece como alternativa
+    if (p.recorte_adicional_robustez_kwh != null) {
+      hijos.push(h("p", { class: "robustez" }, p.alternativa_robusta
+        ? `Alternativa robusta ${p.alternativa_robusta}: recorta ${num.format(p.recorte_adicional_robustez_kwh)} kWh adicionales y evita ${num.format(p.metricas.deficit_p90_kwh)} kWh de déficit si la demanda llega a P90. Para recibirla, rechaza esta propuesta pidiendo más seguridad.`
+        : `Plan robusto: recorta ${num.format(p.recorte_adicional_robustez_kwh)} kWh más que el recorte mínimo para no tener déficit si la demanda llega a P90.`));
+    }
     const lista = h("ul", { class: "acciones" },
       p.acciones.map((a) => a.startsWith("  ·")
         ? h("li", { class: "detalle" }, a.replace(/^\s*·\s*/, ""))
@@ -318,7 +403,7 @@ function pintarDecision(ses) {
   if (ses.historial.length) {
     hijos.push(h("h3", {}, "Tus decisiones en esta sesión"));
     hijos.push(h("ul", { class: "historial" }, ses.historial.map((x) =>
-      h("li", {}, `${x.aprobado ? "Aprobaste" : "Rechazaste"} ${x.escenario}${x.motivo ? `: “${x.motivo}”` : ""}`))));
+      h("li", {}, `${x.aprobado ? "Aprobada" : "Rechazada"} ${x.escenario}${x.operador ? ` por ${x.operador}` : " (sin firma)"}${x.motivo ? `: “${x.motivo}”` : ""}`))));
   }
 
   if (ses.estado === "en_espera") {
@@ -330,13 +415,29 @@ function pintarDecision(ses) {
       h("div", { class: "botonera" },
         h("button", { class: "boton boton-peligro", type: "button", onclick: () => decidir(false, motivo.value, error) }, "Enviar rechazo"),
         h("button", { class: "boton boton-secundario", type: "button", onclick: () => { rechazo.hidden = true; botones.hidden = false; } }, "Cancelar")));
-    const botones = h("div", { class: "botonera" },
-      h("button", { class: "boton boton-aprobar", type: "button", onclick: () => decidir(true, "", error) }, "Aprobar recomendación"),
-      h("button", { class: "boton boton-secundario", type: "button", onclick: () => { botones.hidden = true; rechazo.hidden = false; motivo.focus(); } }, "Rechazar y pedir alternativa"));
-    hijos.push(botones, rechazo, error);
+    const aprobar = h("button", { class: "boton boton-aprobar", type: "button", onclick: () => decidir(true, "", error) }, "Aprobar recomendación");
+    const rechazar = h("button", { class: "boton boton-secundario", type: "button", onclick: () => { botones.hidden = true; rechazo.hidden = false; motivo.focus(); } }, "Rechazar y pedir alternativa");
+    const botones = h("div", { class: "botonera" }, aprobar, rechazar);
+    // Firma: sin nombre no se puede decidir (trazabilidad ISO/IEC 5338)
+    const aviso = h("p", { class: "firma-aviso", id: "firma-aviso" });
+    const nombre = h("input", { id: "operador", type: "text", maxlength: 80, autocomplete: "name",
+      value: leerOperador(), placeholder: "Ej.: Ing. Laura Méndez", "aria-describedby": "firma-aviso" });
+    const actualizarFirma = () => {
+      const n = nombre.value.trim();
+      guardarOperador(n);
+      const falta = !n;
+      [aprobar, rechazar].forEach((b) => (b.disabled = falta));
+      document.querySelectorAll(".rechazo .boton-peligro").forEach((b) => (b.disabled = falta));
+      aviso.textContent = falta ? "Escribe tu nombre para firmar la decisión: queda en la bitácora con ella." : `Firmarás como ${n}.`;
+    };
+    nombre.addEventListener("input", actualizarFirma);
+    const firma = h("div", { class: "firma" }, h("label", { class: "campo", for: "operador" }, h("span", {}, "Nombre de quien decide"), nombre), aviso);
+    hijos.push(firma, botones, rechazo, error);
+    queueMicrotask(actualizarFirma);
   } else if (ses.terminado) {
     hijos.push(h("div", { class: "botonera" },
-      h("a", { class: "boton boton-principal", href: `${API}/sesiones/${ses.id}/reporte`, download: true }, "Descargar reporte"),
+      h("button", { class: "boton boton-principal", type: "button",
+        onclick: (ev) => descargar(`/sesiones/${ses.id}/reporte`, `reporte_electriagent_${ses.id}.json`, ev.currentTarget) }, "Descargar reporte"),
       h("button", { class: "boton boton-secundario", type: "button", onclick: () => window.scrollTo({ top: 0, behavior: sinMovimiento ? "auto" : "smooth" }) }, "Analizar otro periodo")));
   }
   caja.replaceChildren(...hijos);
@@ -344,13 +445,18 @@ function pintarDecision(ses) {
 
 async function decidir(aprobado, motivo, error) {
   error.textContent = "";
+  const operador = leerOperador();
+  if (!operador) {
+    error.textContent = "Escribe tu nombre para firmar la decisión.";
+    return;
+  }
   if (!aprobado && !motivo.trim()) {
     error.textContent = "Escribe qué no te convence para que el sistema pueda replantear la propuesta.";
     return;
   }
   document.querySelectorAll("#decision button").forEach((b) => (b.disabled = true));
   try {
-    const ses = await pedir(`/sesiones/${estado.sesion.id}/aprobacion`, { method: "POST", body: JSON.stringify({ aprobado, motivo }) });
+    const ses = await pedir(`/sesiones/${estado.sesion.id}/aprobacion`, { method: "POST", body: JSON.stringify({ aprobado, motivo, operador }) });
     await mostrar(ses);
     $("decision").focus();
   } catch (e) {
@@ -514,7 +620,7 @@ function pintarAlternativas(ses) {
 function pintarBitacora(ses) {
   $("bitacora").replaceChildren(...ses.consola.map((c) =>
     h("li", {}, h("span", { class: `n ${c.nodo}`, title: c.agente }, c.nodo), h("span", {}, c.texto))));
-  $("descargar-bitacora").href = `${API}/sesiones/${ses.id}/bitacora`;
+  $("descargar-bitacora").onclick = (ev) => descargar(`/sesiones/${ses.id}/bitacora`, `bitacora_${ses.id}.json`, ev.currentTarget);
 }
 
 // ------------------------------------------------------------ inicio
@@ -522,9 +628,12 @@ async function iniciar() {
   try {
     estado.config = await pedir("/config");
   } catch (e) {
-    $("circuito-estado").textContent = e.message;
+    $("circuito-estado").textContent = e instanceof ErrorAcceso
+      ? "Escribe el token de acceso para usar ElectriAgent." : e.message;
     return;
   }
+  $("form-acceso").hidden = true;
+  $("circuito-estado").textContent = "Elige un periodo y pulsa “Analizar consumo”.";
   construirFormulario();
   construirGrafo();
   marcarNodo("A", null);
@@ -538,4 +647,5 @@ async function iniciar() {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 }
+prepararAcceso();
 iniciar();

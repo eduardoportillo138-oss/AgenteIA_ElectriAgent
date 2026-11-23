@@ -121,6 +121,24 @@ export function TarjetaPropuesta({ vista, enLinea, soloLectura, operador, onDeci
   );
 }
 
+/** Política de recorte: el plan mínimo se propone por omisión y el robusto P90 es la alternativa. */
+export function AvisoRobustez({ vista }: { vista: Vista }) {
+  const p = vista.propuesta;
+  const extra = p?.recorte_adicional_robustez_kwh;
+  if (!p || extra == null) return null;
+  return p.alternativa_robusta ? (
+    <View testID="aviso-robustez">
+      <Aviso tipo="info" titulo={`Alternativa robusta ${p.alternativa_robusta}: recorta ${kwh(extra)} adicionales`}
+        detalle={`Evitaría ${kwh(p.metricas.deficit_p90_kwh)} de déficit si la demanda llega a P90 (renovables en P10). Para recibirla, rechaza esta propuesta pidiendo más seguridad.`} />
+    </View>
+  ) : (
+    <View testID="aviso-robustez">
+      <Aviso tipo="info" titulo={`Plan robusto: recorta ${kwh(extra)} más que el recorte mínimo`}
+        detalle="Así no queda déficit aunque la demanda llegue a P90 con las renovables en P10." />
+    </View>
+  );
+}
+
 const TITULO_ESTADO: Record<string, string> = {
   en_espera: 'Falta tu decisión',
   aprobada: 'Recomendación aprobada',
@@ -162,6 +180,7 @@ function Contenido({ vista }: { vista: Vista }) {
           <Aviso tipo="error" titulo="La demanda prevista supera la capacidad disponible"
             detalle="La propuesta recorta parcialmente cargas no críticas, solo los kW necesarios y por prioridad. El hospital conserva el 100 % de su suministro." />
         ) : null}
+        <AvisoRobustez vista={vista} />
         <View style={{ gap: espacio.s }}>
           {p.acciones.map((a, i) => {
             const detalle = a.startsWith('  ·');

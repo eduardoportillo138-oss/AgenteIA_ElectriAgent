@@ -41,8 +41,12 @@ Estados de una sesión: `en_espera`, `aprobada`, `escalada`. La API está pensad
 
 **Seguridad (opcional, retrocompatible):**
 - `ELECTRIAGENT_TOKEN`: si existe, toda ruta `/api` exige `Authorization: Bearer <token>` (401 si falta o es incorrecto). Si no existe, la API funciona como antes.
+  - **En la web**, el campo "Token de acceso" aparece solo si el servidor responde 401. El token se guarda en `sessionStorage` (dura lo que la pestaña, no queda en el equipo) y se envía en todas las llamadas a `/api`, incluidas las descargas del reporte y la bitácora, que se hacen con `fetch` y Blob. Con un token incorrecto se muestra el mensaje del servidor y se vuelve a pedir.
+  - En la app móvil se escribe en Ajustes y se guarda cifrado.
 - `ELECTRIAGENT_CORS`: orígenes permitidos para CORS, separados por coma. Por omisión solo Expo Web en `localhost`/`127.0.0.1` (puertos 8081 y 19006). Las apps nativas no necesitan CORS.
-- El nombre del operador queda en el historial, en la pizarra (`aprobacion`), en el reporte y como evento `decision_humana` en la bitácora (ISO/IEC 5338).
+- **Firma del operador.** El nombre del operador queda en el historial, en la pizarra (`aprobacion`), en el reporte y como evento `decision_humana` en la bitácora (ISO/IEC 5338).
+  - En la web, la propuesta pide "Nombre de quien decide". Sin nombre, los botones de decisión quedan deshabilitados. El nombre se guarda en `localStorage` (es el único dato personal) y "Tus decisiones en esta sesión" muestra quién firmó cada una.
+  - En la app móvil se escribe en Ajustes.
 
 ```powershell
 $env:ELECTRIAGENT_TOKEN = "un-token-largo"; python servidor.py --host 0.0.0.0
@@ -52,6 +56,7 @@ Campos nuevos (los anteriores se conservan igual):
 - `propuesta.robusto`, `propuesta.metricas_p90`, `propuesta.base_planificacion` (`P50` o `P90`), `propuesta.recorte_por_carga` y `propuesta.alimentadores` (totales y uso por alimentador).
 - `propuesta.serie.bandas` (P10/P90 de demanda y renovables) y `propuesta.serie.por_alimentador` con las series de `SE`, `A1` y `A2`.
 - `alternativas[].recorte_kwh`, `robusto`, `deficit_p90_kwh` y `utilizacion_max_pct`.
+- En contingencia: `propuesta.recorte_adicional_robustez_kwh` (kWh que el plan robusto P90 recorta de más frente al mínimo) y `propuesta.alternativa_robusta` (id del plan P90); también en `alternativas[]`.
 - `condicion.descripcion` y `condicion.parametros`; `analisis.cobertura_bandas`; en `trazabilidad`, la cobertura de las bandas.
 
 ## App móvil
@@ -88,7 +93,7 @@ Para probar en el navegador (Expo Web): `npx expo start --web`. El servidor ya p
 |---|---|
 | Analizar | Periodo (1 día a 1 año), condición de la red del catálogo de `/api/config` (con alimentador o porcentaje si aplica) y "Analizar consumo" |
 | Recorrido | Grafo A–H con la disposición vertical de la web. Las aristas se iluminan en orden con su peso y se muestra el costo de coordinación. G pulsa en amarillo mientras espera la decisión. Respeta "reducir movimiento" |
-| Propuesta | Acciones, cifras frente a la operación actual, justificación de las reglas 1–4, aviso de contingencia, recorte parcial por carga, detalle por alimentador y robustez P90. Barra fija con "Aprobar recomendación" y "Rechazar y pedir alternativa" |
+| Propuesta | Acciones, cifras frente a la operación actual, justificación de las reglas 1–4, aviso de contingencia, recorte parcial por carga, detalle por alimentador, robustez P90 y, en contingencia, la alternativa robusta con su recorte adicional (`recorte_adicional_robustez_kwh`). Barra fija con "Aprobar recomendación" y "Rechazar y pedir alternativa" |
 | Detalle | Gráfica de 24 h (tarifas, renovables, límite, banda P10–P90 y selector Subestación/A1/A2), consumo por carga, anomalías, ISO 23894/42005/5338, escenarios y bitácora |
 | Historial | Sesiones de `/api/sesiones` y copias locales. Si una sesión expiró en el servidor (404), abre la copia local en solo lectura |
 | Resultado | Estado aprobada o escalada, quién firmó, y compartir el reporte y la bitácora en JSON |
@@ -244,7 +249,11 @@ Cada condición tiene una descripción que la app muestra al elegirla.
 - **Bandas P10/P50/P90.** El agente de aprendizaje (D) pronostica cada día de los últimos 60 con los días previos y guarda los errores relativos. Sus cuantiles 10, 50 y 90 dan la banda de cada carga; para las renovables se usa el error de la energía diaria (nubes y viento afectan el día completo). La banda se centra en el pronóstico puntual: P50 es el valor central de siempre y P10 ≤ P50 ≤ P90 por construcción.
 - **Cobertura (ISO/IEC 5338).** Las bandas se vuelven a construir sin el último día y se cuenta qué porcentaje de sus 144 lecturas reales cae dentro de P10–P90 (nominal: 80 %). Con menos de 3 días no hay validación. Por debajo de 60 %, F pide recalibrar.
 - **Robustez.** E evalúa cada estrategia en P50 y en un escenario desfavorable: **demanda P90 y renovables P10**. Una estrategia es **robusta** si en ese escenario no deja déficit.
-- **Contingencias.** Si ninguna estrategia evita el déficit, E propone dos recortes: uno planificado en P50 (exactamente el déficit esperado) y uno **robusto** planificado en P90. C prefiere el robusto (Regla 1); si el operador lo rechaza, propone el de P50, que es menos invasivo.
+- **Contingencias: política de recorte.** Si ninguna estrategia evita el déficit, E prepara dos recortes: el **mínimo**, planificado en P50 (`*-CONT`, exactamente el déficit esperado), y el **robusto**, planificado en P90 (`*-CONT-P90`).
+  - Por omisión C propone el **mínimo**. La justificación, la web y la app muestran la alternativa robusta: cuántos kWh adicionales recorta (`recorte_adicional_robustez_kwh`) y cuánto déficit evitaría si la demanda llega a P90.
+  - Si el operador rechaza el mínimo pidiendo **más seguridad** (palabras como "seguridad", "robusto", "riesgo", "P90"), la siguiente propuesta es la P90.
+  - Si lo rechaza pidiendo recortar menos y no queda una medida menos invasiva, C **escala** al operador ("No quedan medidas de contingencia; la red no cubre la demanda").
+  - Nunca se propone un escenario con déficit: toda propuesta enviada a G tiene 0 kWh sin servir en P50 (invariante verificada en código).
 
 ## Agentes (nodos del grafo)
 
@@ -261,7 +270,7 @@ Cada condición tiene una descripción que la app muestra al elegirla.
 
 ## Reglas de decisión del agente de meta
 
-1. **Prioridad de suministro y contingencias.** Primero se descartan los escenarios con déficit en P50. Si ninguno queda sin déficit, se propone una contingencia: recorte parcial de cargas no críticas según su prioridad, siempre protegiendo las cargas críticas. Entre los viables se prefieren los **robustos** (sin déficit en P90); si ninguno lo es, la justificación lo dice y F lo trata como riesgo.
+1. **Prioridad de suministro y contingencias.** Primero se descartan los escenarios con déficit en P50. Si ninguno queda sin déficit, se propone una contingencia: el recorte parcial **mínimo** de cargas no críticas según su prioridad, siempre protegiendo las cargas críticas, con el plan robusto P90 como alternativa. Si no queda ninguna medida, el caso se escala. Fuera de contingencia, entre los viables se prefieren los **robustos** (sin déficit en P90); si ninguno lo es, la justificación lo dice y F lo trata como riesgo. La Regla 1 se redacta con el déficit y el margen reales.
 2. **Renovables.** Entre los escenarios viables, se prefiere el de mayor cobertura renovable.
 3. **Costo.** Si el suministro está garantizado, se elige el de menor costo operativo.
 4. **Validación humana.** Toda recomendación se justifica regla por regla y se envía a aprobación.
@@ -289,6 +298,7 @@ La distribución por alimentador y los escenarios no agregan aristas ni comunica
 - El balance es de energía por hora y alimentador, no un flujo de potencia: no se calculan tensiones, potencia reactiva ni pérdidas por tramo. Las pérdidas son un porcentaje fijo por nivel y la renovable consumida en su alimentador se considera sin pérdidas.
 - Las capacidades de alimentadores y transformadores, las pérdidas, el límite de inyección y los factores del catálogo son ilustrativos.
 - El recorte parcial supone que cada carga puede reducirse en cualquier fracción. En la práctica se hace por circuitos o bloques de carga, así que el recorte real puede ser algo mayor.
-- La banda P90 aplica el cuantil 90 en todas las horas a la vez (y P10 a las renovables). Es más pesimista que un P90 conjunto, así que la contingencia robusta puede recortar bastante más que el déficit esperado en P50. La cobertura medida (≈ 90 % frente a 80 % nominal) indica bandas algo anchas.
+- La banda P90 aplica el cuantil 90 en todas las horas a la vez (y P10 a las renovables). Es más pesimista que un P90 conjunto, así que el plan robusto puede recortar varias veces el déficit esperado en P50. Por eso se ofrece como alternativa y no se propone por omisión. La cobertura medida (≈ 90 % frente a 80 % nominal) indica bandas algo anchas.
+- La petición de "más seguridad" se reconoce por palabras clave en el motivo del rechazo, no por lenguaje natural.
 - La cobertura de las bandas se valida con un solo día fuera de muestra y solo para las cargas.
 - El servidor guarda las sesiones en memoria (máximo 100). El token opcional (`ELECTRIAGENT_TOKEN`) protege la API, pero no hay cuentas por operador: es para uso local o en una red de confianza. Para publicarlo hace falta HTTPS y autenticación por persona.

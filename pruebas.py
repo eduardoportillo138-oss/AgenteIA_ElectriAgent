@@ -239,7 +239,11 @@ def prueba_recorte_parcial():
                     assert (d.recorte[k] <= d.deficit[k] * 1.05 + TOL).all(), (cond, alim, esc.id, k)
                 revisados += 1
     assert revisados >= 4
-    print("OK  recorte parcial: la energía recortada nunca supera el déficit + 5 %")
+    # Política (a): la recomendación en contingencia recorta como máximo el déficit central + 5 %
+    for cond, alim in CONTINGENCIAS:
+        esc = _recomendado(_sistema(cond, alim))
+        assert esc.metricas["recorte_kwh"] <= esc.metricas["deficit_previo_kwh"] * 1.05 + TOL, (cond, alim, esc.id)
+    print("OK  recorte parcial: la energía recortada nunca supera el déficit + 5 % (el propuesto, del déficit central)")
 
 
 def prueba_baja_renovable():
@@ -319,7 +323,8 @@ CONTRATO_VISTA = {"id", "estado", "periodo", "condicion", "dia_recomendado", "co
                   "motivo_escalamiento", "terminado"}
 CONTRATO_PROPUESTA = {"escenario", "nombre", "estrategia", "modo", "justificacion", "acciones", "metricas",
                       "metricas_base", "evaluacion_iso", "serie", "robusto", "metricas_p90",
-                      "base_planificacion", "alimentadores", "recorte_por_carga"}
+                      "base_planificacion", "alimentadores", "recorte_por_carga",
+                      "recorte_adicional_robustez_kwh", "alternativa_robusta"}
 CONTRATO_METRICAS = {"costo_mxn", "renovable_pct", "margen_min_pct", "desplazado_kwh", "deficit_kwh",
                      "recorte_kwh", "perdidas_kwh", "deficit_p90_kwh"}
 CONTRATO_SERIE = {"demanda_base", "demanda_recomendada", "renovable", "capacidad_kw", "horas_suspension",
@@ -440,6 +445,249 @@ def prueba_api_movil():
         srv.server_close()
 
 
+# ------------------------------------------------ H1: nunca proponer un plan con déficit
+CONTINGENCIAS = [("falla_transformador", None), ("falla_alimentador", "A1"), ("falla_alimentador", "A2"),
+                 ("contingencia_natural", None)]
+
+
+def _sistema_web(condicion, alimentador=None, periodo="1m"):
+    import tempfile
+    from motor import crear_sistema
+    s = crear_sistema(periodo=periodo, condicion=condicion, alimentador=alimentador, modo="web",
+                      verbose=False, salida=tempfile.mkdtemp(prefix="electriagent_"))
+    s.iniciar()
+    return s
+
+
+def _propuesta_actual(s):
+    d = s.pizarra.leer("decision")
+    esc = next(e for e in s.pizarra.leer("escenarios")["lista"] if e.id == d["escenario"])
+    return d, esc
+
+
+def _regla1_honesta(d, esc):
+    """Si la justificación dice "sin déficit", el déficit es 0 y los márgenes no son negativos."""
+    r1 = d["justificacion"][0]
+    if "sin déficit" in r1:
+        m = esc.metricas
+        assert m["deficit_kwh"] == 0 and m["margen_min_pct"] >= 0 and m["margen_red_min_pct"] >= 0, (esc.id, r1)
+
+
+def prueba_h1_rechazos_sucesivos():
+    """Rechazos "recortar menos" en contingencias: ninguna propuesta tiene déficit y el flujo
+    termina en escalamiento o aprobación."""
+    from agentes import MOTIVO_SIN_MEDIDAS
+    casos = 0
+    for periodo in ("1s", "1m", "1a"):
+        for cond, alim in CONTINGENCIAS:
+            s = _sistema_web(cond, alim, periodo)
+            vistas = 0
+            while s.en_espera:
+                d, esc = _propuesta_actual(s)
+                assert esc.metricas["deficit_kwh"] == 0, (periodo, cond, alim, esc.id)
+                _regla1_honesta(d, esc)
+                vistas += 1
+                assert vistas <= 4, (periodo, cond, alim)
+                s.responder(False, "recortar menos", "Auditoría")
+            rep = s.salida.reporte
+            assert rep["estado"] in ("ESCALADA AL OPERADOR", "APROBADA"), (periodo, cond, alim, rep["estado"])
+            if rep["estado"] == "ESCALADA AL OPERADOR":
+                motivo = " ".join(rep["motivo_escalamiento"])
+                assert MOTIVO_SIN_MEDIDAS in motivo or "máximo de 3 rechazos" in motivo, motivo
+            casos += 1
+    print(f"OK  H1: {casos} contingencias con rechazos sucesivos nunca proponen déficit y terminan escaladas")
+
+
+def prueba_h1_barrido():
+    """5 periodos x todas las condiciones: A->H sin excepción, nada con déficit llega a G y la
+    Regla 1 solo dice "sin déficit" cuando es cierto."""
+    import tempfile
+    from motor import crear_sistema
+    from modelo_red import PERIODOS
+    n = 0
+    for periodo in PERIODOS:
+        for cond, alim in _catalogo():
+            s = crear_sistema(periodo=periodo, condicion=cond, alimentador=alim, modo="auto", verbose=False,
+                              salida=tempfile.mkdtemp(prefix="electriagent_"))
+            with contextlib.redirect_stdout(io.StringIO()):
+                s.iniciar()
+            assert s.terminado, (periodo, cond, alim)
+            d = s.pizarra.leer("decision")
+            if d["escenario"]:
+                _, esc = _propuesta_actual(s)
+                assert esc.metricas["deficit_kwh"] == 0, (periodo, cond, alim, esc.id)
+                _regla1_honesta(d, esc)
+            n += 1
+    print(f"OK  H1: barrido de {n} combinaciones (5 periodos x catálogo): ninguna propuesta con déficit")
+
+
+def prueba_h1_api_escalada():
+    """Por la API: tras agotar las medidas, el estado es "escalada" y se muestra el motivo."""
+    from agentes import MOTIVO_SIN_MEDIDAS
+    srv = _servidor()
+    pedir = _api_cliente(srv)
+    try:
+        st, v = pedir("POST", "/sesiones", {"condicion": "falla_transformador"})
+        for _ in range(4):
+            if v["estado"] != "en_espera":
+                break
+            assert v["propuesta"]["metricas"]["deficit_kwh"] == 0
+            st, v = pedir("POST", f"/sesiones/{v['id']}/aprobacion",
+                          {"aprobado": False, "motivo": "recortar menos", "operador": "Auditoría"})
+            assert st == 200
+        assert v["estado"] == "escalada" and v["terminado"], v["estado"]
+        assert any(MOTIVO_SIN_MEDIDAS in t for t in v["motivo_escalamiento"]), v["motivo_escalamiento"]
+        assert v["propuesta"] is None
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    print("OK  H1: por la API la contingencia agotada queda escalada con su motivo")
+
+
+# ------------------------------------------------ H2: política de recorte (a)
+def prueba_h2_politica_recorte():
+    """Política (a): la propuesta inicial de toda contingencia es el recorte mínimo (P50),
+    recorta como máximo el déficit central + 5 %, y ofrece el plan P90 como alternativa con
+    recorte_adicional_robustez_kwh = recorte P90 - recorte P50. Si el operador pide más
+    seguridad, la siguiente propuesta es la P90."""
+    revisadas = 0
+    for periodo in ("1s", "1m"):
+        for cond, alim in CONTINGENCIAS:
+            s = _sistema_web(cond, alim, periodo)
+            d, esc = _propuesta_actual(s)
+            m = esc.metricas
+            assert esc.estrategia == "contingencia" and esc.base_planificacion == "P50", (cond, alim, esc.id)
+            assert m["recorte_kwh"] <= m["deficit_previo_kwh"] * 1.05 + TOL, (cond, alim, esc.id)
+            lista = {e.id: e for e in s.pizarra.leer("escenarios")["lista"]}
+            robusto = lista[m["alternativa_robusta"]]
+            assert robusto.base_planificacion == "P90" and robusto.robusto
+            extra = robusto.metricas["recorte_kwh"] - m["recorte_kwh"]
+            assert abs(m["recorte_adicional_robustez_kwh"] - extra) <= TOL and extra >= 0, (cond, alim)
+            assert d["recorte_adicional_robustez_kwh"] == m["recorte_adicional_robustez_kwh"]
+            assert any("Alternativa robusta" in j for j in d["justificacion"])
+            s.responder(False, "Quiero más seguridad ante la demanda", "Auditoría")
+            assert s.en_espera, (cond, alim)
+            d2, esc2 = _propuesta_actual(s)
+            assert esc2.id == robusto.id and esc2.metricas["deficit_kwh"] == 0, (cond, alim, esc2.id)
+            revisadas += 1
+    srv = _servidor()
+    pedir = _api_cliente(srv)
+    try:
+        st, v = pedir("POST", "/sesiones", {"condicion": "falla_alimentador", "alimentador": "A1"})
+        p = v["propuesta"]
+        assert p["escenario"].endswith("-CONT") and p["recorte_adicional_robustez_kwh"] > 0
+        assert p["alternativa_robusta"].endswith("-CONT-P90")
+        alt = {a["id"]: a for a in v["alternativas"]}
+        assert abs(alt[p["alternativa_robusta"]]["recorte_kwh"] - p["metricas"]["recorte_kwh"]
+                   - p["recorte_adicional_robustez_kwh"]) <= TOL
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    print(f"OK  H2: {revisadas} contingencias proponen el recorte mínimo, ofrecen el P90 y lo dan al pedir más seguridad")
+
+
+# ------------------------------------------------ H3: la web funciona con token
+def prueba_h3_web_con_token():
+    """Con ELECTRIAGENT_TOKEN: la interfaz estática carga sin token, y un cliente que imita a la
+    web (config, sesión, aprobación, reporte y bitácora) funciona con la cabecera; sin ella, 401."""
+    import urllib.request
+    srv = _servidor(token="token-web")
+    pedir = _api_cliente(srv)
+    raiz = f"http://127.0.0.1:{srv.server_address[1]}"
+    con = {"Authorization": "Bearer token-web"}
+    try:
+        for ruta in ("/", "/app.js", "/estilos.css"):      # la web debe poder pedir el token
+            with urllib.request.urlopen(raiz + ruta) as r:
+                assert r.status == 200, ruta
+        assert pedir("GET", "/salud")[0] == 401
+        st, e = pedir("GET", "/config")
+        assert st == 401 and e["error"]
+        assert pedir("GET", "/config", cabeceras={"Authorization": "Bearer otro"})[0] == 401
+        st, cfg = pedir("GET", "/config", cabeceras=con)
+        assert st == 200 and cfg["periodos"]
+        st, v = pedir("POST", "/sesiones", {"condicion": "normal"}, cabeceras=con)
+        assert st == 201 and v["estado"] == "en_espera"
+        sid = v["id"]
+        assert pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True})[0] == 401
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True, "operador": "Web"}, cabeceras=con)
+        assert st == 200 and v["estado"] == "aprobada"
+        for sub in ("reporte", "bitacora"):
+            assert pedir("GET", f"/sesiones/{sid}/{sub}")[0] == 401, sub
+            st, h = pedir("GET", f"/sesiones/{sid}/{sub}", cabeceras=con, crudo=True)
+            assert st == 200 and "attachment" in h.get("Content-Disposition", ""), sub
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    # La web envía la cabecera en todas las llamadas y ya no descarga con <a href> a la API
+    js = open(os.path.join(AQUI, "web", "app.js"), encoding="utf-8").read()
+    assert "Authorization: `Bearer ${t}`" in js and "sessionStorage" in js
+    assert "href: `${API}" not in js and ".href = `${API}" not in js
+    html = open(os.path.join(AQUI, "web", "index.html"), encoding="utf-8").read()
+    assert 'id="token"' in html and "Token de acceso" in html
+    print("OK  H3: la web pide el token tras un 401 y lo envía en config, sesión, aprobación, reporte y bitácora")
+
+
+# ------------------------------------------------ H4: la web firma las decisiones
+def prueba_h4_firma_web():
+    """Una decisión enviada como la web (con `operador`) queda en el historial, la pizarra,
+    el reporte y la bitácora; web/app.js pide el nombre y lo envía."""
+    import servidor
+    srv = _servidor()
+    pedir = _api_cliente(srv)
+    web = {"Origin": "http://localhost:8081"}        # mismas cabeceras que manda un navegador
+    try:
+        st, v = pedir("POST", "/sesiones", {"condicion": "ola_calor"}, cabeceras=web)
+        sid = v["id"]
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion",
+                      {"aprobado": False, "motivo": "Muy invasiva", "operador": "Operadora Web"}, cabeceras=web)
+        assert st == 200 and v["historial"][-1]["operador"] == "Operadora Web"
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True, "operador": "Operadora Web"},
+                      cabeceras=web)
+        assert st == 200 and v["estado"] == "aprobada"
+        assert [d["operador"] for d in v["historial"]] == ["Operadora Web", "Operadora Web"]
+        s = servidor.obtener(sid)
+        assert s.pizarra.leer("aprobacion")["operador"] == "Operadora Web"
+        assert [e["operador"] for e in s.bitacora.eventos if e["tipo"] == "decision_humana"] == ["Operadora Web"] * 2
+        st, rep = pedir("GET", f"/sesiones/{sid}/reporte", cabeceras=web)
+        assert rep["aprobacion"]["operador"] == "Operadora Web"
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    js = open(os.path.join(AQUI, "web", "app.js"), encoding="utf-8").read()
+    assert "JSON.stringify({ aprobado, motivo, operador })" in js
+    assert "Nombre de quien decide" in js and "localStorage" in js and "por ${x.operador}" in js
+    print("OK  H4: la web firma cada decisión; la firma queda en historial, pizarra, reporte y bitácora")
+
+
+# ------------------------------------------------ H5: modo auto silencioso con verbose=False
+def prueba_h5_auto_silencioso():
+    """Con verbose=False, el modo auto (con y sin rechazos) no escribe nada en stdout; el modo
+    interactivo sigue mostrando la propuesta y pidiendo la decisión."""
+    import builtins
+    import tempfile
+    from motor import crear_sistema
+    for rechazos in (0, 1):
+        s = crear_sistema(periodo="1s", condicion="ola_calor", modo="auto", rechazos=rechazos,
+                          verbose=False, salida=tempfile.mkdtemp(prefix="electriagent_"))
+        salida = io.StringIO()
+        with contextlib.redirect_stdout(salida):
+            s.iniciar()
+        assert s.terminado and salida.getvalue() == "", repr(salida.getvalue()[:200])
+    s = crear_sistema(periodo="1s", condicion="normal", modo="interactivo", verbose=False,
+                      salida=tempfile.mkdtemp(prefix="electriagent_"))
+    preguntas = []
+    original = builtins.input
+    builtins.input = lambda texto="": preguntas.append(texto) or "s"
+    salida = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(salida):
+            s.iniciar()
+    finally:
+        builtins.input = original
+    assert "PROPUESTA PARA APROBACIÓN" in salida.getvalue() and preguntas and s.terminado
+    print("OK  H5: con verbose=False el modo auto no imprime; el interactivo sigue mostrando la propuesta")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -454,4 +702,11 @@ if __name__ == "__main__":
         prueba_bandas()
         prueba_catalogo()
         prueba_api_movil()
+        prueba_h1_rechazos_sucesivos()
+        prueba_h1_barrido()
+        prueba_h1_api_escalada()
+        prueba_h2_politica_recorte()
+        prueba_h3_web_con_token()
+        prueba_h4_firma_web()
+        prueba_h5_auto_silencioso()
     print("\nTodas las pruebas pasaron.")
