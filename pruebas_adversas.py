@@ -35,7 +35,7 @@ import unittest
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable
 
 import numpy as np
@@ -1120,6 +1120,18 @@ DEFECTOS: dict[str, dict] = {
             "pares": [("REF.mape-fin-de-semana", "E")]},
     "A7": {"severidad": "baja", "titulo": "La API responde 500 ante tipos JSON inesperados o un Content-Length inválido",
            "pares": [(f"F7.api-{c[0]}", "E") for c in []]},   # se completa al definir ENTRADAS_DEFECTO
+    # Fallas nuevas de la evaluación de resultados (docs/evaluacion/INFORME.md, evaluar.py)
+    "B1": {"severidad": "alta", "titulo": "En día laboral el pronóstico subestima la demanda ~5 % (la ventana de 7 días "
+                                          "arrastra el fin de semana) y nada mide el sesgo: el plan aprobado 'sin déficit' "
+                                          "deja energía no suministrada no prevista",
+           "pares": [("EVAL.sesgo-laboral", "E")]},
+    "B2": {"severidad": "media", "titulo": "Al rechazar el recorte mínimo pidiendo recortar menos, el escalamiento dice "
+                                           "'No quedan medidas de contingencia' sin decir que el plan rechazado ya era el "
+                                           "mínimo ni cuánta energía quedará sin servir sin aviso",
+           "pares": [("EVAL.escalamiento-recortar-menos", "E")]},
+    "B3": {"severidad": "baja", "titulo": "En contingencia el impacto ISO/IEC 42005 al operador compara costos sin igualar "
+                                          "la energía servida: marca 'negativo' (sobrecosto) aunque el costo por kWh servido baja",
+           "pares": [("EVAL.impacto-operador", "E")]},
 }
 
 
@@ -1223,6 +1235,88 @@ class Defectos(unittest.TestCase):
     @unittest.expectedFailure
     def test_A9_sensor_congelado_sin_deteccion(self):
         exigir(*DEFECTOS["A9"]["pares"], en=DEFECTOS["A9"]["periodos"])
+
+
+class DefectosEvaluacion(unittest.TestCase):
+    """Fallas B1-B3 halladas en la evaluación de resultados (evaluar.py). Mismo esquema que Defectos:
+    cada prueba exige el comportamiento correcto y hoy falla (@expectedFailure)."""
+    JUEVES = datetime(2026, 11, 19)        # día recomendado laboral de la evaluación
+    SEMILLAS = (7, 101, 202, 303, 404)
+
+    @staticmethod
+    def _sistema(condicion: str, semilla: int = SEMILLA_BASE, periodo: str = "1m"):
+        d = tempfile.mkdtemp(prefix="ea_eval_")
+        try:
+            s = crear_sistema(periodo=periodo, condicion=condicion, modo="web", semilla=semilla, salida=d,
+                              ruta_memoria=os.path.join(d, "memoria.json"), verbose=False,
+                              fin=DefectosEvaluacion.JUEVES)
+            s.iniciar()
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+        return s
+
+    @staticmethod
+    def _fila(eid: str, problemas: list[str], notas: str, comando: str):
+        FILAS_EXTRA.append({"familia": "EVAL", "escenario": eid, "periodo": "1m", "semilla": SEMILLA_BASE,
+                            "propuesta": "-", "estado_final": "-", **{i: "NA" for i in INVARIANTES},
+                            "esperado": "FALLA" if problemas else "OK", "defecto": "",
+                            "detalle": "; ".join(problemas), "notas": notas, "comando": comando})
+
+    @unittest.expectedFailure
+    def test_B1_sesgo_del_pronostico_en_dia_laboral(self):
+        """Operación normal, 1m, día recomendado jueves 2026-11-19: el pronóstico P50 de la demanda total
+        no debe subestimar el día real (simulado con semilla + 50 000, sin anomalías) en más de 3 %."""
+        from modelo_red import SimuladorIoT
+        sesgos = []
+        for semilla in self.SEMILLAS:
+            s = self._sistema("normal", semilla)
+            pron = sum(s.pizarra.leer("analisis")["pronostico_cargas"].values())
+            sim = SimuladorIoT(s.red, semilla + 50_000)
+            sim.TASA_ANOMALIAS = sim.TASA_PERDIDAS = 0.0
+            real = sum(sim.capturar("1d", self.JUEVES + timedelta(days=1))["consumo"].values())
+            sesgos.append(100 * (pron.sum() - real.sum()) / real.sum())
+        problemas = [f"sesgo medio {np.mean(sesgos):.1f} % (< −3 %) en día laboral"] if np.mean(sesgos) < -3 else []
+        self._fila("EVAL.sesgo-laboral", problemas, "sesgos por semilla " + ", ".join(f"{x:.1f} %" for x in sesgos),
+                   "python pruebas_adversas.py DefectosEvaluacion.test_B1_sesgo_del_pronostico_en_dia_laboral")
+        self.assertFalse(problemas, problemas)
+
+    @unittest.expectedFailure
+    def test_B2_escalamiento_tras_rechazar_el_recorte_minimo(self):
+        """Falla del transformador, 1m, jueves: el operador rechaza el recorte mínimo pidiendo recortar menos.
+        El escalamiento debe decir que el plan rechazado ya era el mínimo y cuántos kWh quedarían sin servir."""
+        s = self._sistema("falla_transformador")
+        propuesta = s.pizarra.leer("decision")["escenario"]
+        s.responder(False, "Recortar menos: el recorte propuesto afecta demasiado a los usuarios", "Prueba")
+        texto = " ".join(s.pizarra.leer("decision")["justificacion"])
+        problemas = []
+        if "mínimo" not in texto.lower() or not re.search(r"\d[\d,]* kWh", texto):
+            problemas.append(f"tras rechazar {propuesta} el escalamiento dice '{texto[:90]}'")
+        self._fila("EVAL.escalamiento-recortar-menos", problemas, f"propuesta rechazada {propuesta}",
+                   "python pruebas_adversas.py DefectosEvaluacion.test_B2_escalamiento_tras_rechazar_el_recorte_minimo")
+        self.assertFalse(problemas, problemas)
+
+    @unittest.expectedFailure
+    def test_B3_impacto_al_operador_a_igual_energia_servida(self):
+        """Falla del transformador, 1m, jueves: si el plan de contingencia baja el costo por kWh servido frente
+        a S0, el impacto al 'Operador de la red' no puede ser 'negativo' por sobrecosto."""
+        s = self._sistema("falla_transformador")
+        lista = {e.id: e for e in s.pizarra.leer("escenarios")["lista"]}
+        evals = {e["id"]: e for e in s.pizarra.leer("evaluacion")["escenarios"]}
+
+        def por_kwh(m):
+            return m["costo_mxn"] / max(m["demanda_kwh"] - m["recorte_kwh"] - m["deficit_kwh"], 1e-6)
+        s0 = lista["S0"].metricas
+        problemas = []
+        for eid, e in lista.items():
+            if e.estrategia != "contingencia":
+                continue
+            imp = next(i for i in evals[eid]["impactos"] if i["grupo"] == "Operador de la red")
+            if imp["efecto"] == "negativo" and por_kwh(e.metricas) < por_kwh(s0):
+                problemas.append(f"{eid}: impacto negativo ({imp['detalle'][:60]}) con {por_kwh(e.metricas):.3f} "
+                                 f"< {por_kwh(s0):.3f} MXN/kWh servido de S0")
+        self._fila("EVAL.impacto-operador", problemas, "", "python pruebas_adversas.py "
+                   "DefectosEvaluacion.test_B3_impacto_al_operador_a_igual_energia_servida")
+        self.assertFalse(problemas, problemas)
 
 
 class F1DemandaAlta(_Familia, unittest.TestCase):

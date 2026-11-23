@@ -439,3 +439,16 @@ la envía.
 **Datos IoT adversos.** Se alteran las lecturas que entrega el simulador, antes de B, envolviendo
 `SimuladorIoT.capturar` en la prueba. Las fallas persistentes de agentes se simulan sustituyendo
 su `procesar` en la prueba. El motor no tiene código de prueba.
+
+## Anexo: fallas añadidas por la evaluación de resultados (B1–B3)
+
+La campaña de evaluación de resultados (`python evaluar.py`, informe en
+[`docs/evaluacion/INFORME.md`](../evaluacion/INFORME.md)) registró tres fallas nuevas. Cada una tiene su
+entrada en `DEFECTOS` y una prueba `@unittest.expectedFailure` en la clase `DefectosEvaluacion` de
+`pruebas_adversas.py`, así que la suite sigue en verde con `OK (expected failures=13)`.
+
+| Id | Severidad | Falla | Prueba |
+|---|---|---|---|
+| B1 | alta | En día laboral el pronóstico subestima la demanda ~5 % (la ventana de 7 días arrastra el fin de semana) y nada mide el sesgo: el plan aprobado «sin déficit» deja energía no suministrada no prevista | `DefectosEvaluacion.test_B1_sesgo_del_pronostico_en_dia_laboral` |
+| B2 | media | Al rechazar el recorte mínimo pidiendo recortar menos, el escalamiento dice «No quedan medidas de contingencia» sin decir que el plan rechazado ya era el mínimo ni cuánta energía quedará sin servir sin aviso | `DefectosEvaluacion.test_B2_escalamiento_tras_rechazar_el_recorte_minimo` |
+| B3 | baja | En contingencia el impacto ISO/IEC 42005 al operador compara costos sin igualar la energía servida: marca «negativo» aunque el costo por kWh servido baja | `DefectosEvaluacion.test_B3_impacto_al_operador_a_igual_energia_servida` |

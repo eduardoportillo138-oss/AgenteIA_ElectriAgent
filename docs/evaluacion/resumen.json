@@ -1,0 +1,602 @@
+{
+ "modo": "completo",
+ "fecha": "2026-11-23",
+ "corridas": 8100,
+ "corridas_linea_base": 1600,
+ "evaluaciones_posteriores": 2175,
+ "segundos_campana": 132.4,
+ "segundos_total": 140.0,
+ "inconsistencias": 0,
+ "supuestos": {
+  "cens_mxn_kwh": {
+   "residencial": 40.0,
+   "comercial": 120.0,
+   "industrial": 90.0,
+   "servicio": 150.0,
+   "critica": 3000.0
+  },
+  "factor_sin_aviso": 1.5,
+  "prob_desfavorable": 0.1,
+  "precio_exportacion_mxn_kwh": 0.9,
+  "tope_recorte": 2.0,
+  "mundos_exante": [
+   [
+    0.0,
+    0.5
+   ],
+   [
+    0.5,
+    0.4
+   ],
+   [
+    1.0,
+    0.1
+   ]
+  ],
+  "semiancho_minimo": 0.15,
+  "dias_historial_corto": 7,
+  "dias": {
+   "laboral": "2026-11-19",
+   "finde": "2026-11-22"
+  },
+  "semillas": [
+   7,
+   101,
+   202,
+   303,
+   404
+  ],
+  "desfase_semilla_realidad": 50000,
+  "operacion_sin_plan": "S0"
+ },
+ "dictamen": {
+  "continuidad": {
+   "cifra": "ENS no prevista de 1,684 kWh/día con el plan aprobado en las contingencias del catálogo en día laboral",
+   "reduccion_ens_planificada_pct": 38.45362553733983,
+   "ens_s0_kwh": 3422.2403424505187,
+   "ens_propuesta_kwh": 2106.26485617682,
+   "propuestas_con_ens_critica": 0,
+   "propuestas": 800,
+   "ens_no_prevista_laboral_kwh": 1683.7176788116726
+  },
+  "eficiencia": {
+   "cifra": "MAPE real 15.0 % en fin de semana contra 4.5 % entre semana, con sesgo -4.5 % en día laboral",
+   "mape_finde_pct": 14.95880946641802,
+   "mape_laboral_pct": 4.520059380021195,
+   "sesgo_laboral_pct": -4.527919661531104
+  },
+  "costo": {
+   "cifra": "ahorro de 4.3 % (5,091 MXN/día) sin déficit; costo total 46.6 % menor que S0 en el catálogo con déficit (planificado)",
+   "ahorro_sin_deficit_mxn": 5090.562795723352,
+   "ahorro_sin_deficit_pct": 4.272373085032937,
+   "reduccion_costo_total_pct": 46.62269702378175,
+   "costo_total_real_s0_mxn": 529104.990576485,
+   "costo_total_real_mxn": 394666.05484886747
+  }
+ },
+ "servicio_decision": {
+  "propuesta": 1200,
+  "escalamiento": 100,
+  "roto": 300
+ },
+ "fallas": {
+  "A1": {
+   "severidad": "alta",
+   "titulo": "Una falla en B, G o H tumba al supervisor",
+   "impacto": "100 % de flujos rotos (150 corridas con el transformador al 55 %): sin plan la ENS planificada sube de 2,821 a 5,264 kWh/día y llega sin aviso; costo total real 519,868 → 763,886 MXN/día (+244,017); 7.0 mensajes y ningún reporte.",
+   "cifras": {
+    "roto_pct": 100.0,
+    "n": 150,
+    "ens_sin_plan": 5264.284543234558,
+    "ens_con_plan": 2821.084552540358,
+    "ens_real_sin_plan": 4858.784336114981,
+    "ens_real_con_plan": 4000.9943947703564,
+    "costo_total_sin": 763885.7706432042,
+    "costo_total_con": 519868.4296088618,
+    "mensajes": 7.0,
+    "mensajes_ref": 9.0,
+    "costo_coord": 26.666666666666668
+   }
+  },
+  "A2": {
+   "severidad": "media",
+   "titulo": "Un medidor sin lecturas rompe el flujo",
+   "impacto": "100 % de flujos rotos; costo total real 763,886 MXN/día contra 520,066 con datos limpios (M-DATOS termina el 100 %); ENS real 4,859 → 4,008 kWh/día.",
+   "cifras": {
+    "roto_pct": 100.0,
+    "n": 50,
+    "propuesta_con_datos_pct": 100.0,
+    "ens_sin_plan": 5264.284543234558,
+    "costo_total_sin": 763885.7706432043,
+    "costo_total_con": 520065.9118940324,
+    "ens_real_sin": 4858.78433611498,
+    "ens_real_con": 4008.0691324366985
+   }
+  },
+  "A3": {
+   "severidad": "media",
+   "titulo": "Demanda nula: división entre cero y diagnóstico falso",
+   "impacto": "100 % escalado con «Falla persistente en E: se requiere decisión …»: diagnóstico falso, 10.0 mensajes y costo de coordinación 35.0 (normal: 9.0 y 36.0) y 1 decisión innecesaria del operador. Sin efecto en ENS ni en costo de energía (no hay demanda).",
+   "cifras": {
+    "escalamiento_pct": 100.0,
+    "n": 50,
+    "motivo": "Falla persistente en E: se requiere decisión del operador.",
+    "mensajes": 10.0,
+    "mensajes_normal": 9.0,
+    "costo_coord": 35.0,
+    "costo_coord_normal": 36.0,
+    "acciones_pedidas": 1
+   }
+  },
+  "A4": {
+   "severidad": "media",
+   "titulo": "El escalamiento no dice que falta energía para el hospital",
+   "impacto": "ENS del hospital 7,787 kWh/día (real 7,977); costo social del hospital 35,043,027 MXN/día de 39,818,470 totales; el escalamiento lo menciona en el 0 % de los casos.",
+   "cifras": {
+    "n": 50,
+    "escalamiento_pct": 100.0,
+    "ens_critica": 7787.339335747179,
+    "ens_critica_real": 7976.607558638649,
+    "menciona_pct": 0,
+    "costo_social_hospital": 35043027.010862306,
+    "costo_social_total": 39818470.13808732,
+    "ens": 39106.23220080355
+   }
+  },
+  "A5": {
+   "severidad": "media",
+   "titulo": "La cobertura de bandas ignora las renovables",
+   "impacto": "ENS no prevista con el plan aprobado: 5,291 kWh/día laboral y 64 en fin de semana (costo social +361,480 MXN/día); la cobertura de validación marca 77.4 % (solo demanda) y la alerta salta en el 12 %, mientras la cobertura renovable real es 13.1 %. Pronóstico optimista de F4: 6,695 kWh/día no previstos entre semana.",
+   "cifras": {
+    "n": 50,
+    "ens_np_lab": 5291.394348437436,
+    "ens_np_fin": 63.86836677139988,
+    "ens_np_p90": 162.83846277948388,
+    "cob_valid": 77.3775,
+    "cob_ren_real": 13.142857142857142,
+    "cob_dem_real": 82.80555555555557,
+    "alerta_cal_pct": 12.5,
+    "costo_social_np": 361480.23327659623,
+    "f4_np_lab": 6694.616964782541,
+    "f4_np_fin": 403.4436708538041,
+    "banda_np_p90": 3.031706101347648,
+    "banda_np_p90_base": 202.63607951647697,
+    "banda_recorte": 2797.5427964581613
+   }
+  },
+  "A6": {
+   "severidad": "media",
+   "titulo": "Con 1 día de historial la banda es demasiado estrecha",
+   "impacto": "Ancho de banda 11.4 % con 1 día contra 37.8 % con 1 mes; cobertura real 66.1 % contra 89.0 %. Con el plan P90 (perfil más seguridad) quedan 135 kWh/día no previstos en 1d contra 54 en 1m (costo social +12,614 MXN/día).",
+   "cifras": {
+    "ancho_1d": 11.437009116727506,
+    "ancho_1m": 37.788593588898124,
+    "cob_1d": 66.11111111111113,
+    "cob_1m": 89.02777777777777,
+    "np_p90_1d": 134.844003055963,
+    "np_p90_1m": 54.05335425664673,
+    "costo_np_1d": 12613.625907577109,
+    "banda_np": 27.735541112428496,
+    "banda_recorte": 3642.5697450733915,
+    "banda_costo": 321171.5325688321,
+    "n_1d": 76
+   }
+  },
+  "A7": {
+   "severidad": "baja",
+   "titulo": "La API responde 500 ante tipos inválidos",
+   "impacto": "4 de 4 entradas mal tipadas responden 500 (periodo como lista → 500; condición como objeto → 500…): el cliente no recibe un mensaje útil. Sin efecto en ENS ni costo.",
+   "cifras": {
+    "entradas": 4,
+    "respuestas_500": 4,
+    "detalle": [
+     "periodo como lista → 500",
+     "condición como objeto → 500",
+     "Content-Length no numérico → 500",
+     "Content-Length negativo → 500"
+    ]
+   }
+  },
+  "A8": {
+   "severidad": "alta",
+   "titulo": "Lecturas negativas → pronóstico negativo (historial corto)",
+   "impacto": "Pronóstico mínimo -193 kW (negativo en el 50 % de las corridas 1d–1s; con M-DATOS 139 kW); MAPE real 7.9 → 6.2 %; con el transformador al 55 % la ENS no prevista pasa de 1,417 a 853 kWh/día con datos limpios (Δ costo total -22,557 MXN/día).",
+   "cifras": {
+    "pron_min": -192.7062523674368,
+    "pron_min_datos": 138.97003109041802,
+    "pct_negativo": 50.0,
+    "mape": 7.892534047284363,
+    "mape_datos": 6.196933660684496,
+    "sesgo": -0.7100135905146164,
+    "sesgo_datos": 2.740551102510832,
+    "np": 1417.13729328575,
+    "np_datos": 853.1003606975559,
+    "costo": -22557.062779663334,
+    "n": 40
+   }
+  },
+  "A9": {
+   "severidad": "media",
+   "titulo": "Sin detector de sensor congelado",
+   "impacto": "Sesgo real -8.1 % y MAPE 9.4 % (1d–1s) contra +2.8 % y 6.2 % con M-DATOS; con el transformador al 55 %: ENS no prevista 3,332 → 844 kWh/día, Δ costo total -97,640 MXN/día.",
+   "cifras": {
+    "mape": 9.395706289976241,
+    "mape_datos": 6.162680501227827,
+    "sesgo": -8.068002765689233,
+    "sesgo_datos": 2.776425283347727,
+    "np": 3332.209213232726,
+    "np_datos": 844.3150026260844,
+    "costo": -97639.51377829109,
+    "costo_todos": -33381.62778533203,
+    "n": 40
+   }
+  },
+  "A10": {
+   "severidad": "media",
+   "titulo": "El pronóstico ignora el tipo de día (fin de semana)",
+   "impacto": "MAPE real 15.0 % en fin de semana contra 4.5 % (validación 19.8 contra 5.9 %); sesgo +15.1 %; alerta de deriva en el 100 % de los fines de semana (falsa); en contingencia se recortan 2,387 kWh/día de más y el plan deja 2,606 kWh/día de ENS real contra 1,037 si no se hiciera nada (bastaban 217); M-PRON ahorra 198,476 MXN/día de costo total.",
+   "cifras": {
+    "mape_fin": 14.95880946641802,
+    "mape_lab": 4.520059380021195,
+    "mape_val_fin": 19.810499999999998,
+    "mape_val_lab": 5.937,
+    "sesgo_fin": 15.141532259570845,
+    "alerta_fin": 100.0,
+    "alerta_lab": 0,
+    "sobre_recorte": 2386.7235283760956,
+    "ens_real_plan": 2606.1242223720255,
+    "ens_real_s0": 1037.3066519359782,
+    "ens_min": 217.21892715061594,
+    "n_cf": 80,
+    "ahorro_pron": 198476.24439929627,
+    "riesgo_fin": 25.0,
+    "riesgo_fin_pron": 25.0
+   }
+  },
+  "B1": {
+   "severidad": "alta",
+   "titulo": "Sesgo negativo del pronóstico en día laboral sin monitoreo (nueva)",
+   "impacto": "Sesgo real -4.5 % en día laboral (MAPE 4.5 %, validación 5.9 %, alerta 0 %: nada lo detecta). En contingencia el plan aprobado deja **1,684 kWh/día de ENS no prevista** sin aviso (con M-PRON 467); costo social +228,304 MXN/día; M-PRON ahorra 44,604 MXN/día.",
+   "cifras": {
+    "sesgo_lab": -4.527919661531104,
+    "mape_lab": 4.520059380021195,
+    "mape_val_lab": 5.937,
+    "alerta_lab": 0,
+    "np": 1683.7176788116726,
+    "np_pron": 466.94407306546634,
+    "np_base_par": 1683.7176788116726,
+    "costo_social_np": 228304.2213679929,
+    "ahorro_pron": 44603.8632400217,
+    "n": 80
+   }
+  },
+  "B2": {
+   "severidad": "media",
+   "titulo": "Escalamiento engañoso tras rechazar el recorte mínimo (nueva)",
+   "impacto": "El 100.0 % de los rechazos «recortar menos» en contingencia (340 corridas) terminan en escalamiento con «No quedan medidas de contingencia; la red no cubre…». Sin plan, la ENS real cambia +191 kWh/día pero 11,312 kWh/día llegan sin aviso y el costo total real sube 469,089 MXN/día frente a aprobar.",
+   "cifras": {
+    "n_cont": 340,
+    "escalamiento_pct": 100.0,
+    "escalamiento_total_pct": 42.5,
+    "motivo": "No quedan medidas de contingencia; la red no cubre la demanda: se requiere decisión del op",
+    "ens_real": 190.9065708074282,
+    "ens_no_prevista_sin_aviso": 11311.709212038115,
+    "costo_total": 469088.81309305876,
+    "costo_total_plan": 703302.7338582656
+   }
+  },
+  "B3": {
+   "severidad": "baja",
+   "titulo": "Impacto al operador sin igualar la energía servida (nueva)",
+   "impacto": "64.3 % de las propuestas de contingencia (575) marcan «negativo» al operador por un sobrecosto medio de 2,608 MXN/día que es efecto servicio (-4,499 MXN: sirven más energía); en el 64.3 % el costo por kWh servido baja (1.799 → 1.777 MXN/kWh).",
+   "cifras": {
+    "n": 575,
+    "negativo_pct": 64.34782608695652,
+    "negativo_mas_barato_pct": 64.34782608695652,
+    "sobrecosto": 2608.330024293744,
+    "efecto_servicio": -4499.376481832162,
+    "kwh_s0": 1.798869084411817,
+    "kwh": 1.777318409208036
+   }
+  }
+ },
+ "mejoras": {
+  "M-PRON": {
+   "esfuerzo_h": 6,
+   "riesgo": "bajo: cambia solo _pronostico/_residuales; requiere ≥ 1 día del mismo tipo",
+   "delta": "MAPE real laboral 4.6 → 1.9 % y fin de semana 15.2 → 2.0 %; sesgo -4.7 → -0.2 % y +15.4 → -0.3 %; cobertura real laboral 83.8 → 88.2 % con banda 38.8 → 17.6 %; alerta de deriva en fin de semana 100 → 0 %; riesgo máximo fin de semana 19.4 → 15.4. Contingencias del catálogo: ENS no prevista laboral 1,684 → 467 kWh/día; sobre-recorte en fin de semana 2,387 → 17 kWh/día; costo total real en todos los días con déficit −88,543 MXN/día. Plan P90: recorte -3,480 kWh/día.",
+   "cifras": {
+    "dias": {
+     "laboral": {
+      "mape": 4.638048302404984,
+      "mape_m": 1.8691876914628562,
+      "sesgo": -4.654791622015958,
+      "sesgo_m": -0.18147863378192233,
+      "cob": 83.84982638888889,
+      "cob_m": 88.20963541666666,
+      "ancho": 38.82777856133019,
+      "ancho_m": 17.640656362350907,
+      "riesgo": 17.171875,
+      "riesgo_m": 16.890625,
+      "alerta": 0,
+      "alerta_m": 0,
+      "np": 1683.7176788116726,
+      "np_m": 466.94407306546634,
+      "sobre": 1.5322240776854954,
+      "sobre_m": 134.4354910585514,
+      "ens_real": 4458.573951448604,
+      "ens_real_m": 4578.987619939852,
+      "costo": 44603.8632400217
+     },
+     "finde": {
+      "mape": 15.16779902273609,
+      "mape_m": 1.9581661093312839,
+      "sesgo": 15.357318822208493,
+      "sesgo_m": -0.2528556362351386,
+      "cob": 89.98480902777779,
+      "cob_m": 86.46918402777779,
+      "ancho": 41.789253599828086,
+      "ancho_m": 19.168921924716862,
+      "riesgo": 19.4125,
+      "riesgo_m": 15.359375,
+      "alerta": 100.0,
+      "alerta_m": 0,
+      "np": 2.181766845313706,
+      "np_m": 125.38205805316161,
+      "sobre": 2386.7235283760956,
+      "sobre_m": 17.026263819226603,
+      "ens_real": 2606.1242223720255,
+      "ens_real_m": 282.6712659441149,
+      "costo": 198476.24439929627
+     }
+    },
+    "beneficio_dia_deficit": 88543.38584985114,
+    "beneficio_todos": 43707.96910510438,
+    "energia": 4360.662299960231,
+    "recorte_p90": -3480.045257104217,
+    "np_p90": 23.735637491347255,
+    "costo_p90": 229162.4831992876
+   }
+  },
+  "M-EXPORT": {
+   "esfuerzo_h": 12,
+   "riesgo": "medio: cambia el balance de distribucion._paso, el costo y las métricas; requiere precio y acuerdo de exportación",
+   "delta": "En los 102 días con desperdicio: desperdicio 4,720 → 21 kWh/día, aprovechamiento 60.2 → 99.0 %, 4,451 kWh exportados, ingreso 4,006 y ahorro neto 2,597 MXN/día; el límite de 800 kW actuaría 0.3 h/día. % renovable de la demanda: sin cambio (se exporta, no se consume).",
+   "cifras": {
+    "n": 102,
+    "desp": 4719.545464082229,
+    "desp_m": 20.55304661586935,
+    "exportada": 4451.345284499388,
+    "aprov": 60.24587755098533,
+    "aprov_m": 99.00338903968687,
+    "ingreso": 4006.2107560494487,
+    "neto": 2596.5130308095427,
+    "horas_limite": 0.3235294117647059,
+    "max_desp": 9509.719481546214,
+    "pct_corridas": 6.580645161290323,
+    "principal_desp": 0.0
+   }
+  },
+  "M-BANDA": {
+   "esfuerzo_h": 4,
+   "riesgo": "bajo en código; medio en operación (más recorte en el plan P90)",
+   "delta": "1d con plan P90: ENS no prevista 135 → 28 kWh/día a cambio de +3,643 kWh/día de recorte (costo total real +321,172 MXN/día). Renovable baja (A5) con plan P90: 203 → 3 kWh/día, recorte +2,798 kWh/día; con el plan P50 no cambia nada (3,232 kWh/día): la alerta sí detecta la caída.",
+   "cifras": {
+    "np_1d": 134.844003055963,
+    "np_1d_m": 27.735541112428496,
+    "recorte_1d": 3642.5697450733915,
+    "costo_1d": -321171.5325688321,
+    "np_a5": 202.63607951647697,
+    "np_a5_m": 3.031706101347648,
+    "recorte_a5": 2797.5427964581613,
+    "costo_a5": -171548.89700242312,
+    "np_a5_p50": 3231.554311759447,
+    "beneficio": -81058.4423411644,
+    "n": 446
+   }
+  },
+  "M-ROBUSTEZ": {
+   "esfuerzo_h": 8,
+   "riesgo": "medio: cambia la política de recorte; el CENS debe validarlo el operador",
+   "delta": "Contingencias de la campaña principal (340 corridas), valores esperados por día: P50 recorte 9,642 kWh, no prevista 1,546 kWh, costo total 1,323,680 MXN; TOPE recorte 13,406 kWh, no prevista 553 kWh, costo total 1,414,848 MXN; MINCOSTO recorte 10,044 kWh, no prevista 1,466 kWh, costo total 1,328,106 MXN; P90 recorte 17,533 kWh, no prevista 67 kWh, costo total 1,618,203 MXN. El tope ahorra 203,355 MXN/día frente al P90; el costo mínimo elige α = 0 (P50) en el 97 % de los casos.",
+   "cifras": {
+    "n": 340,
+    "politicas": {
+     "P50": {
+      "recorte_kwh": 9642.040531277695,
+      "ens_no_prevista_real_kwh": 1546.1691875185516,
+      "ens_esperada_kwh": 11252.637843789596,
+      "energia_esperada_mxn": 123992.38933967863,
+      "social_esperado_mxn": 1199687.397861698,
+      "total_esperado_mxn": 1323679.7872013766
+     },
+     "TOPE": {
+      "recorte_kwh": 13405.84870473956,
+      "ens_no_prevista_real_kwh": 553.0321103913805,
+      "ens_esperada_kwh": 12858.243680805579,
+      "energia_esperada_mxn": 120581.12842154231,
+      "social_esperado_mxn": 1294267.1741745959,
+      "total_esperado_mxn": 1414848.3025961383
+     },
+     "MINCOSTO": {
+      "recorte_kwh": 10044.468964146503,
+      "ens_no_prevista_real_kwh": 1465.6291306530602,
+      "ens_esperada_kwh": 11346.356016073414,
+      "energia_esperada_mxn": 123812.80594654224,
+      "social_esperado_mxn": 1204293.635790688,
+      "total_esperado_mxn": 1328106.4417372304
+     },
+     "P90": {
+      "recorte_kwh": 17532.929476931204,
+      "ens_no_prevista_real_kwh": 66.96118253649675,
+      "ens_esperada_kwh": 15578.94389180785,
+      "energia_esperada_mxn": 114722.53871734515,
+      "social_esperado_mxn": 1503480.9435590836,
+      "total_esperado_mxn": 1618203.4822764292
+     }
+    },
+    "alfa_tope": 0.5051470588235294,
+    "alfa_min": 0.014705882352941176,
+    "mincosto_p50_pct": 97.05882352941177,
+    "beneficio_vs_p90": 203355.17968029086,
+    "beneficio_vs_p50": -4426.65453585377
+   }
+  },
+  "M-DATOS": {
+   "esfuerzo_h": 6,
+   "riesgo": "bajo: preprocesamiento aislado; umbrales a calibrar con datos reales",
+   "delta": "Casos F6 y A2 (350 pares): flujos completos 57.1 → 100.0 %; MAPE real 9.1 → 8.6 %; ENS no prevista 869 → 672 kWh/día; ENS real en F6 2,099 → 1,997 kWh/día; costo total real −76,746 MXN/día.",
+   "cifras": {
+    "n": 350,
+    "flujo": 57.142857142857146,
+    "flujo_m": 100.0,
+    "mape": 9.111981343471744,
+    "mape_m": 8.578684104145557,
+    "np": 868.8245463998679,
+    "np_m": 671.796250594928,
+    "ens_real": 2493.5725630499683,
+    "ens_real_m": 2284.433515443378,
+    "beneficio": 76745.5716126945,
+    "f6_ens": 2099.3706008724657,
+    "f6_ens_m": 1997.1609126111578,
+    "normal_sin_cambio": null
+   }
+  },
+  "M-CONCURRENCIA": {
+   "esfuerzo_h": 16,
+   "riesgo": "alto: concurrencia, aislamiento de sesiones y memoria compartida",
+   "delta": "Ráfaga de 16 análisis: p95 servidor 1.57 s; 1 proceso 1.36 s; **2 procesos 0.77 s; 4 procesos 0.50 s** (p50 0.84 → 0.43 → 0.30 s). Sin efecto en ENS ni costo.",
+   "cifras": {
+    "servidor": {
+     "p50_s": 0.839780599984806,
+     "p95_s": 1.5676297250320204,
+     "max_s": 1.5917158999945968,
+     "errores": 0
+    },
+    "procesos_1": {
+     "p50_s": 0.7283748000627384,
+     "p95_s": 1.3637902000336908,
+     "max_s": 1.3799046999774873
+    },
+    "procesos_2": {
+     "p50_s": 0.42667045001871884,
+     "p95_s": 0.7683356749766972,
+     "max_s": 0.8625682999845594
+    },
+    "procesos_4": {
+     "p50_s": 0.30445684998994693,
+     "p95_s": 0.5032475749612786,
+     "max_s": 0.5595647000009194
+    },
+    "pedidos": 16
+   }
+  },
+  "M-SUPERVISOR": {
+   "esfuerzo_h": 1,
+   "riesgo": "bajo: una rama en _manejar_falla",
+   "delta": "Las 150 corridas de A1 terminan con plan (0 → 100 %); ENS real 4,859 → 4,001 kWh/día; costo total real −244,017 MXN/día.",
+   "cifras": {
+    "n": 150,
+    "flujo": 0.0,
+    "flujo_m": 100.0,
+    "ens_real": 4858.784336114981,
+    "ens_real_m": 4000.9943947703564,
+    "beneficio": 244017.34103434245
+   }
+  }
+ },
+ "matriz": [
+  {
+   "id": "M-PRON",
+   "horas": 6,
+   "puntaje": 4,
+   "beneficio": 88543.38584985114,
+   "razon": 0.6666666666666666
+  },
+  {
+   "id": "M-EXPORT",
+   "horas": 12,
+   "puntaje": 3,
+   "beneficio": 2596.5130308095427,
+   "razon": 0.25
+  },
+  {
+   "id": "M-BANDA",
+   "horas": 4,
+   "puntaje": 1,
+   "beneficio": -81058.4423411644,
+   "razon": 0.25
+  },
+  {
+   "id": "M-ROBUSTEZ",
+   "horas": 8,
+   "puntaje": 5,
+   "beneficio": 203355.17968029086,
+   "razon": 0.625
+  },
+  {
+   "id": "M-DATOS",
+   "horas": 6,
+   "puntaje": 4,
+   "beneficio": 76745.5716126945,
+   "razon": 0.6666666666666666
+  },
+  {
+   "id": "M-CONCURRENCIA",
+   "horas": 16,
+   "puntaje": 2,
+   "beneficio": null,
+   "razon": 0.125
+  },
+  {
+   "id": "M-SUPERVISOR",
+   "horas": 1,
+   "puntaje": 5,
+   "beneficio": 244017.34103434245,
+   "razon": 5.0
+  }
+ ],
+ "concurrencia": {
+  "pedidos": 16,
+  "periodos": "1m, 6m, 1a",
+  "servidor": {
+   "p50_s": 0.839780599984806,
+   "p95_s": 1.5676297250320204,
+   "max_s": 1.5917158999945968,
+   "errores": 0
+  },
+  "a7": {
+   "entradas": 4,
+   "respuestas_500": 4,
+   "detalle": [
+    "periodo como lista → 500",
+    "condición como objeto → 500",
+    "Content-Length no numérico → 500",
+    "Content-Length negativo → 500"
+   ]
+  },
+  "procesos_1": {
+   "p50_s": 0.7283748000627384,
+   "p95_s": 1.3637902000336908,
+   "max_s": 1.3799046999774873
+  },
+  "procesos_2": {
+   "p50_s": 0.42667045001871884,
+   "p95_s": 0.7683356749766972,
+   "max_s": 0.8625682999845594
+  },
+  "procesos_4": {
+   "p50_s": 0.30445684998994693,
+   "p95_s": 0.5032475749612786,
+   "max_s": 0.5595647000009194
+  }
+ },
+ "graficas": [
+  "ens_por_condicion.png",
+  "costo_kwh_servido.png",
+  "renovable_aprovechada.png",
+  "mape_tipo_dia.png",
+  "frontera_costo_continuidad.png",
+  "matriz_impacto_esfuerzo.png"
+ ]
+}

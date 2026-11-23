@@ -8,18 +8,18 @@
     "1a"
   ],
   "corridas": 550,
-  "filas": 596,
+  "filas": 599,
   "invariantes_evaluadas": 5458,
   "invariantes_ok": 5427,
   "pct_invariantes_ok": 99.43,
-  "esperados_evaluados": 337,
+  "esperados_evaluados": 340,
   "esperados_ok": 298,
   "rendimiento": {
     "api": {
       "sesiones": 20,
-      "p50_s": 2.79,
-      "p95_s": 4.96,
-      "max_s": 5.53,
+      "p50_s": 0.78,
+      "p95_s": 1.37,
+      "max_s": 1.54,
       "periodos": [
         "1a",
         "1d",
@@ -30,24 +30,24 @@
     },
     "analisis": {
       "1d": {
-        "mediana_s": 0.041,
-        "max_s": 0.046
+        "mediana_s": 0.01,
+        "max_s": 0.014
       },
       "1s": {
-        "mediana_s": 0.046,
-        "max_s": 0.056
+        "mediana_s": 0.012,
+        "max_s": 0.067
       },
       "1m": {
-        "mediana_s": 0.109,
-        "max_s": 0.239
+        "mediana_s": 0.023,
+        "max_s": 0.024
       },
       "6m": {
-        "mediana_s": 0.376,
-        "max_s": 0.389
+        "mediana_s": 0.088,
+        "max_s": 0.091
       },
       "1a": {
-        "mediana_s": 0.618,
-        "max_s": 0.674
+        "mediana_s": 0.153,
+        "max_s": 0.159
       }
     },
     "maquina": {
@@ -68,6 +68,9 @@
     "A8": "Con historial corto (1d, 1s) las lecturas negativas producen una referencia negativa: D reemplaza lecturas válidas, el pronóstico sale negativo y P90 < P10",
     "A9": "D no detecta un sensor congelado: sin detector de valor constante, lo marca solo si el valor se aleja de la referencia (0 % en 1d y 1s, 86 % en 1m)",
     "A10": "El pronóstico ignora el tipo de día: si el historial termina en fin de semana el MAPE sube a ~19 % y la alerta de deriva queda siempre activa",
-    "A7": "La API responde 500 ante tipos JSON inesperados o un Content-Length inválido"
+    "A7": "La API responde 500 ante tipos JSON inesperados o un Content-Length inválido",
+    "B1": "En día laboral el pronóstico subestima la demanda ~5 % (la ventana de 7 días arrastra el fin de semana) y nada mide el sesgo: el plan aprobado 'sin déficit' deja energía no suministrada no prevista",
+    "B2": "Al rechazar el recorte mínimo pidiendo recortar menos, el escalamiento dice 'No quedan medidas de contingencia' sin decir que el plan rechazado ya era el mínimo ni cuánta energía quedará sin servir sin aviso",
+    "B3": "En contingencia el impacto ISO/IEC 42005 al operador compara costos sin igualar la energía servida: marca 'negativo' (sobrecosto) aunque el costo por kWh servido baja"
   }
 }
