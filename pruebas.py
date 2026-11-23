@@ -586,6 +586,47 @@ def prueba_h2_politica_recorte():
     print(f"OK  H2: {revisadas} contingencias proponen el recorte mínimo, ofrecen el P90 y lo dan al pedir más seguridad")
 
 
+# ------------------------------------------------ H3: la web funciona con token
+def prueba_h3_web_con_token():
+    """Con ELECTRIAGENT_TOKEN: la interfaz estática carga sin token, y un cliente que imita a la
+    web (config, sesión, aprobación, reporte y bitácora) funciona con la cabecera; sin ella, 401."""
+    import urllib.request
+    srv = _servidor(token="token-web")
+    pedir = _api_cliente(srv)
+    raiz = f"http://127.0.0.1:{srv.server_address[1]}"
+    con = {"Authorization": "Bearer token-web"}
+    try:
+        for ruta in ("/", "/app.js", "/estilos.css"):      # la web debe poder pedir el token
+            with urllib.request.urlopen(raiz + ruta) as r:
+                assert r.status == 200, ruta
+        assert pedir("GET", "/salud")[0] == 401
+        st, e = pedir("GET", "/config")
+        assert st == 401 and e["error"]
+        assert pedir("GET", "/config", cabeceras={"Authorization": "Bearer otro"})[0] == 401
+        st, cfg = pedir("GET", "/config", cabeceras=con)
+        assert st == 200 and cfg["periodos"]
+        st, v = pedir("POST", "/sesiones", {"condicion": "normal"}, cabeceras=con)
+        assert st == 201 and v["estado"] == "en_espera"
+        sid = v["id"]
+        assert pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True})[0] == 401
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True, "operador": "Web"}, cabeceras=con)
+        assert st == 200 and v["estado"] == "aprobada"
+        for sub in ("reporte", "bitacora"):
+            assert pedir("GET", f"/sesiones/{sid}/{sub}")[0] == 401, sub
+            st, h = pedir("GET", f"/sesiones/{sid}/{sub}", cabeceras=con, crudo=True)
+            assert st == 200 and "attachment" in h.get("Content-Disposition", ""), sub
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    # La web envía la cabecera en todas las llamadas y ya no descarga con <a href> a la API
+    js = open(os.path.join(AQUI, "web", "app.js"), encoding="utf-8").read()
+    assert "Authorization: `Bearer ${t}`" in js and "sessionStorage" in js
+    assert "href: `${API}" not in js and ".href = `${API}" not in js
+    html = open(os.path.join(AQUI, "web", "index.html"), encoding="utf-8").read()
+    assert 'id="token"' in html and "Token de acceso" in html
+    print("OK  H3: la web pide el token tras un 401 y lo envía en config, sesión, aprobación, reporte y bitácora")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -604,4 +645,5 @@ if __name__ == "__main__":
         prueba_h1_barrido()
         prueba_h1_api_escalada()
         prueba_h2_politica_recorte()
+        prueba_h3_web_con_token()
     print("\nTodas las pruebas pasaron.")

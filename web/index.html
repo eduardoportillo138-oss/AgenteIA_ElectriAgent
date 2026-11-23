@@ -25,6 +25,20 @@
 
   <main id="principal">
     <section class="solicitud" aria-labelledby="t-solicitud">
+      <form id="form-acceso" class="acceso" hidden aria-labelledby="t-acceso">
+        <div>
+          <h2 id="t-acceso">Este servidor pide un token de acceso</h2>
+          <p class="sub">Es el valor de ELECTRIAGENT_TOKEN. Se guarda solo mientras esta pestaña esté abierta.</p>
+          <div class="fila-campos">
+            <label class="campo">
+              <span>Token de acceso</span>
+              <input id="token" name="token" type="password" autocomplete="off" aria-label="Token de acceso" required>
+            </label>
+            <button class="boton boton-principal" type="submit">Entrar</button>
+          </div>
+          <p class="error" id="acceso-error" role="alert"></p>
+        </div>
+      </form>
       <h1 id="t-solicitud">¿Qué periodo quieres analizar?</h1>
       <form id="form-analisis">
         <fieldset class="periodos">
@@ -138,7 +152,7 @@
       <section class="tarjeta" aria-labelledby="t-bitacora">
         <h2 id="t-bitacora">Bitácora de los agentes</h2>
         <ol class="bitacora" id="bitacora"></ol>
-        <p><a class="enlace" id="descargar-bitacora" href="#" download>Descargar bitácora de trazabilidad</a></p>
+        <p><button class="enlace boton-enlace" id="descargar-bitacora" type="button">Descargar bitácora de trazabilidad</button></p>
       </section>
     </div>
   </main>

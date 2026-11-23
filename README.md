@@ -41,6 +41,8 @@ Estados de una sesión: `en_espera`, `aprobada`, `escalada`. La API está pensad
 
 **Seguridad (opcional, retrocompatible):**
 - `ELECTRIAGENT_TOKEN`: si existe, toda ruta `/api` exige `Authorization: Bearer <token>` (401 si falta o es incorrecto). Si no existe, la API funciona como antes.
+  - **En la web**, el campo "Token de acceso" aparece solo si el servidor responde 401. El token se guarda en `sessionStorage` (dura lo que la pestaña, no queda en el equipo) y se envía en todas las llamadas a `/api`, incluidas las descargas del reporte y la bitácora, que se hacen con `fetch` y Blob. Con un token incorrecto se muestra el mensaje del servidor y se vuelve a pedir.
+  - En la app móvil se escribe en Ajustes y se guarda cifrado.
 - `ELECTRIAGENT_CORS`: orígenes permitidos para CORS, separados por coma. Por omisión solo Expo Web en `localhost`/`127.0.0.1` (puertos 8081 y 19006). Las apps nativas no necesitan CORS.
 - El nombre del operador queda en el historial, en la pizarra (`aprobacion`), en el reporte y como evento `decision_humana` en la bitácora (ISO/IEC 5338).
 

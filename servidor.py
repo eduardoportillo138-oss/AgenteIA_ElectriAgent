@@ -382,7 +382,7 @@ class Manejador(BaseHTTPRequestHandler):
             if ruta.startswith("/api/"):
                 if not self._autorizado():
                     raise ErrorAPI(HTTPStatus.UNAUTHORIZED, "Falta el token de acceso o es incorrecto. "
-                                                            "Revisa el token en los ajustes de la app.")
+                                                            "Usa el valor de ELECTRIAGENT_TOKEN del servidor.")
                 return self._api(metodo, ruta)
             if metodo != "GET":
                 raise ErrorAPI(HTTPStatus.METHOD_NOT_ALLOWED, "Método no permitido")
