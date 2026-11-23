@@ -440,6 +440,105 @@ def prueba_api_movil():
         srv.server_close()
 
 
+# ------------------------------------------------ H1: nunca proponer un plan con déficit
+CONTINGENCIAS = [("falla_transformador", None), ("falla_alimentador", "A1"), ("falla_alimentador", "A2"),
+                 ("contingencia_natural", None)]
+
+
+def _sistema_web(condicion, alimentador=None, periodo="1m"):
+    import tempfile
+    from motor import crear_sistema
+    s = crear_sistema(periodo=periodo, condicion=condicion, alimentador=alimentador, modo="web",
+                      verbose=False, salida=tempfile.mkdtemp(prefix="electriagent_"))
+    s.iniciar()
+    return s
+
+
+def _propuesta_actual(s):
+    d = s.pizarra.leer("decision")
+    esc = next(e for e in s.pizarra.leer("escenarios")["lista"] if e.id == d["escenario"])
+    return d, esc
+
+
+def _regla1_honesta(d, esc):
+    """Si la justificación dice "sin déficit", el déficit es 0 y los márgenes no son negativos."""
+    r1 = d["justificacion"][0]
+    if "sin déficit" in r1:
+        m = esc.metricas
+        assert m["deficit_kwh"] == 0 and m["margen_min_pct"] >= 0 and m["margen_red_min_pct"] >= 0, (esc.id, r1)
+
+
+def prueba_h1_rechazos_sucesivos():
+    """Rechazos "recortar menos" en contingencias: ninguna propuesta tiene déficit y el flujo
+    termina en escalamiento o aprobación."""
+    from agentes import MOTIVO_SIN_MEDIDAS
+    casos = 0
+    for periodo in ("1s", "1m", "1a"):
+        for cond, alim in CONTINGENCIAS:
+            s = _sistema_web(cond, alim, periodo)
+            vistas = 0
+            while s.en_espera:
+                d, esc = _propuesta_actual(s)
+                assert esc.metricas["deficit_kwh"] == 0, (periodo, cond, alim, esc.id)
+                _regla1_honesta(d, esc)
+                vistas += 1
+                assert vistas <= 4, (periodo, cond, alim)
+                s.responder(False, "recortar menos", "Auditoría")
+            rep = s.salida.reporte
+            assert rep["estado"] in ("ESCALADA AL OPERADOR", "APROBADA"), (periodo, cond, alim, rep["estado"])
+            if rep["estado"] == "ESCALADA AL OPERADOR":
+                motivo = " ".join(rep["motivo_escalamiento"])
+                assert MOTIVO_SIN_MEDIDAS in motivo or "máximo de 3 rechazos" in motivo, motivo
+            casos += 1
+    print(f"OK  H1: {casos} contingencias con rechazos sucesivos nunca proponen déficit y terminan escaladas")
+
+
+def prueba_h1_barrido():
+    """5 periodos x todas las condiciones: A->H sin excepción, nada con déficit llega a G y la
+    Regla 1 solo dice "sin déficit" cuando es cierto."""
+    import tempfile
+    from motor import crear_sistema
+    from modelo_red import PERIODOS
+    n = 0
+    for periodo in PERIODOS:
+        for cond, alim in _catalogo():
+            s = crear_sistema(periodo=periodo, condicion=cond, alimentador=alim, modo="auto", verbose=False,
+                              salida=tempfile.mkdtemp(prefix="electriagent_"))
+            with contextlib.redirect_stdout(io.StringIO()):
+                s.iniciar()
+            assert s.terminado, (periodo, cond, alim)
+            d = s.pizarra.leer("decision")
+            if d["escenario"]:
+                _, esc = _propuesta_actual(s)
+                assert esc.metricas["deficit_kwh"] == 0, (periodo, cond, alim, esc.id)
+                _regla1_honesta(d, esc)
+            n += 1
+    print(f"OK  H1: barrido de {n} combinaciones (5 periodos x catálogo): ninguna propuesta con déficit")
+
+
+def prueba_h1_api_escalada():
+    """Por la API: tras agotar las medidas, el estado es "escalada" y se muestra el motivo."""
+    from agentes import MOTIVO_SIN_MEDIDAS
+    srv = _servidor()
+    pedir = _api_cliente(srv)
+    try:
+        st, v = pedir("POST", "/sesiones", {"condicion": "falla_transformador"})
+        for _ in range(4):
+            if v["estado"] != "en_espera":
+                break
+            assert v["propuesta"]["metricas"]["deficit_kwh"] == 0
+            st, v = pedir("POST", f"/sesiones/{v['id']}/aprobacion",
+                          {"aprobado": False, "motivo": "recortar menos", "operador": "Auditoría"})
+            assert st == 200
+        assert v["estado"] == "escalada" and v["terminado"], v["estado"]
+        assert any(MOTIVO_SIN_MEDIDAS in t for t in v["motivo_escalamiento"]), v["motivo_escalamiento"]
+        assert v["propuesta"] is None
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    print("OK  H1: por la API la contingencia agotada queda escalada con su motivo")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -454,4 +553,7 @@ if __name__ == "__main__":
         prueba_bandas()
         prueba_catalogo()
         prueba_api_movil()
+        prueba_h1_rechazos_sucesivos()
+        prueba_h1_barrido()
+        prueba_h1_api_escalada()
     print("\nTodas las pruebas pasaron.")

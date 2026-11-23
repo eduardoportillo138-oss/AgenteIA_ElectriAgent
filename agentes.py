@@ -27,6 +27,7 @@ from modelo_red import NOMBRE_PERIODO, PERIODOS, RedDistribucion, SimuladorIoT
 
 VERSION_MODELO = "ElectriAgent-proto 0.2"
 TOLERANCIA_RIESGO = 12        # nivel máximo aceptable (probabilidad x impacto)
+MOTIVO_SIN_MEDIDAS = "No quedan medidas de contingencia; la red no cubre la demanda"
 MARGEN_OBJETIVO = 0.10        # margen mínimo de capacidad deseado
 MAPE_REENTRENAR = 15.0        # % de error que dispara alerta de deriva (ISO/IEC 5338)
 COBERTURA_NOMINAL = 80.0      # % esperado de lecturas dentro de la banda P10-P90
@@ -770,12 +771,12 @@ class AgenteMeta(Agente):
         if not candidatos:
             return self._escalar(conv, "No quedan escenarios alternativos")
 
-        # Regla 1: suministro garantizado (en el pronóstico central P50)
+        # Regla 1: solo se proponen escenarios sin déficit en P50 (después de sus medidas).
+        # Si ninguno lo logra, no se propone un plan inseguro: se escala al operador.
         viables = [i for i in candidatos if escenarios[i].metricas["deficit_kwh"] == 0]
-        modo = "normal"
         if not viables:
-            viables = [i for i in candidatos if escenarios[i].estrategia == "contingencia"] or candidatos
-            modo = "contingencia"
+            return self._escalar(conv, MOTIVO_SIN_MEDIDAS)
+        modo = "contingencia" if any(escenarios[i].estrategia == "contingencia" for i in viables) else "normal"
         aceptables = [i for i in viables if evaluacion[i]["aceptable"]] or viables
         rech = self.pizarra.leer("decision") if self.excluidos else None
         if rech and rech.get("escenario"):
@@ -804,22 +805,13 @@ class AgenteMeta(Agente):
         if esc.estrategia == "contingencia":
             modo = "contingencia"
         m = esc.metricas
+        # Invariante (Regla 1): nada con déficit llega a la aprobación humana
+        if m["deficit_kwh"] != 0:
+            raise RuntimeError(f"Invariante violada: {elegido} tiene {m['deficit_kwh']} kWh de déficit en P50")
+        r1 = _texto_regla1(esc, base)
         if m["recorte_kwh"] > 0:
-            cargas = ", ".join(f"{n} {kwh:,.0f} kWh" for n, kwh in
-                               sorted(m["recorte_por_carga_kwh"].items(), key=lambda x: -x[1]))
-            r1 = (f"Regla 1: la demanda supera la capacidad disponible ({m['deficit_planificado_kwh']:,.0f} kWh de "
-                  f"déficit en la banda {esc.base_planificacion}); se recomienda un recorte parcial de "
-                  f"{m['recorte_kwh']:,.0f} kWh solo en cargas no críticas, por prioridad ({cargas}). "
-                  "Las cargas críticas conservan el 100 % de su suministro.")
-            if esc.base_planificacion == "P90":
-                r1 += (f" Con el pronóstico central bastarían {m['deficit_previo_kwh']:,.0f} kWh; el excedente "
-                       "protege la estabilidad si la demanda llega a P90.")
             r3 = "Regla 3: no aplica, el suministro no está garantizado (prevalece la estabilidad de la red)."
         else:
-            r1 = (f"Regla 1: sin déficit de suministro (margen mínimo {m['margen_min_pct']} % en la subestación, "
-                  f"{m['margen_red_min_pct']} % en la red).")
-            if base.metricas["deficit_kwh"] > 0 and base is not esc:
-                r1 += f" Sin cambios habría {base.metricas['deficit_kwh']:,.0f} kWh de déficit."
             r3 = (f"Regla 3: costo {m['costo_mxn']:,.0f} MXN "
                   f"({_ahorro(base.metricas['costo_mxn'] - m['costo_mxn'])} frente a la operación actual).")
         alims = "; ".join(f"{k} margen {a['margen_min_pct']} %, uso máx. {a['utilizacion_max_pct']} %"
@@ -1014,6 +1006,35 @@ class RecomendacionFinal(Agente):
         with open(os.path.join(self.salida, "reporte_electriagent.json"), "w", encoding="utf-8") as f:
             json.dump(reporte, f, ensure_ascii=False, indent=2, default=str)
         self.log(f"recomendación {reporte['estado']} entregada al usuario")
+
+
+def _texto_regla1(esc: "Escenario", base: "Escenario") -> str:
+    """Texto de la Regla 1 a partir del déficit y los márgenes reales del escenario.
+    Nunca afirma "sin déficit" si hay energía sin servir o un margen negativo."""
+    m = esc.metricas
+    margen_se, margen_red = m["margen_min_pct"], m["margen_red_min_pct"]
+    if m["deficit_kwh"] > 0:
+        return (f"Regla 1: el suministro NO está garantizado: quedarían {m['deficit_kwh']:,.0f} kWh sin servir "
+                f"(margen mínimo {margen_se} % en la subestación, {margen_red} % en la red).")
+    if m["recorte_kwh"] > 0:
+        cargas = ", ".join(f"{n} {kwh:,.0f} kWh" for n, kwh in
+                           sorted(m["recorte_por_carga_kwh"].items(), key=lambda x: -x[1]))
+        texto = (f"Regla 1: la demanda supera la capacidad disponible ({m['deficit_planificado_kwh']:,.0f} kWh de "
+                 f"déficit en la banda {esc.base_planificacion}); se recomienda un recorte parcial de "
+                 f"{m['recorte_kwh']:,.0f} kWh solo en cargas no críticas, por prioridad ({cargas}). "
+                 "Las cargas críticas conservan el 100 % de su suministro.")
+        if esc.base_planificacion == "P90":
+            texto += (f" Con el pronóstico central bastarían {m['deficit_previo_kwh']:,.0f} kWh; el excedente "
+                      "protege la estabilidad si la demanda llega a P90.")
+        return texto
+    if min(margen_se, margen_red) < 0:
+        return (f"Regla 1: suministro al límite: margen mínimo {margen_se} % en la subestación y {margen_red} % "
+                "en la red; vigilar la operación.")
+    texto = (f"Regla 1: sin déficit de suministro (margen mínimo {margen_se} % en la subestación, "
+             f"{margen_red} % en la red).")
+    if base.metricas["deficit_kwh"] > 0 and base is not esc:
+        texto += f" Sin cambios habría {base.metricas['deficit_kwh']:,.0f} kWh de déficit."
+    return texto
 
 
 def _ahorro(valor: float) -> str:
