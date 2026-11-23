@@ -540,8 +540,17 @@ class AgenteDeliberativo(Agente):
 
         if all(e.metricas["deficit_kwh"] > 0 for e in escenarios):
             mejor = min(escenarios, key=lambda e: e.metricas["deficit_kwh"])
-            escenarios.append(self._contingencia(mejor, ctx, "P50"))
-            escenarios.append(self._contingencia(mejor, ctx, "P90"))
+            minimo = self._contingencia(mejor, ctx, "P50")
+            robusto = self._contingencia(mejor, ctx, "P90")
+            # Cuánto más recorta el plan robusto y cuánto déficit P90 evita frente al mínimo
+            extra = round(max(0.0, robusto.metricas["recorte_kwh"] - minimo.metricas["recorte_kwh"]), 1)
+            evitado = round(max(0.0, minimo.metricas["deficit_p90_kwh"] - robusto.metricas["deficit_p90_kwh"]), 1)
+            for e in (minimo, robusto):
+                e.metricas["recorte_adicional_robustez_kwh"] = extra
+                e.metricas["deficit_p90_evitado_kwh"] = evitado
+            minimo.metricas["alternativa_robusta"] = robusto.id
+            robusto.metricas["plan_minimo"] = minimo.id
+            escenarios += [minimo, robusto]
         escenarios = [e for e in escenarios if e.id not in excluir]
 
         cap = ctx.limites.subestacion_kw
@@ -721,6 +730,7 @@ class AgenteMeta(Agente):
         self.max_rechazos = max_rechazos
         self.rechazos = 0
         self.excluidos: list[str] = []
+        self.ultimo_motivo = ""                 # motivo del último rechazo del operador
         self.reintentos: dict[str, int] = {}
         self.ultima_solicitud: dict[str, dict] = {}
 
@@ -744,6 +754,7 @@ class AgenteMeta(Agente):
         elif msg.performativa == P.REJECT:
             self.rechazos += 1
             self.excluidos.append(msg.contenido["escenario"])
+            self.ultimo_motivo = msg.contenido.get("motivo") or ""
             self.log(f"rechazo #{self.rechazos} ({msg.contenido.get('motivo') or 'sin motivo'}); "
                      "se replantean medidas alternas")
             if self.rechazos >= self.max_rechazos:
@@ -778,26 +789,39 @@ class AgenteMeta(Agente):
             return self._escalar(conv, MOTIVO_SIN_MEDIDAS)
         modo = "contingencia" if any(escenarios[i].estrategia == "contingencia" for i in viables) else "normal"
         aceptables = [i for i in viables if evaluacion[i]["aceptable"]] or viables
+        hay_robusta = any(escenarios[i].robusto for i in aceptables)
         rech = self.pizarra.leer("decision") if self.excluidos else None
-        if rech and rech.get("escenario"):
-            # Tras un rechazo se buscan medidas alternas menos invasivas que la rechazada
-            campo = "desplazado_kwh" if modo == "normal" else "recorte_kwh"
-            limite = rech.get(campo)
-            menos = [i for i in aceptables
-                     if limite is not None and escenarios[i].metricas[campo] < limite]
-            aceptables = menos or aceptables
-        if modo == "normal" and not any(evaluacion[i]["aceptable"] for i in viables):
-            modo = "riesgo fuera de tolerancia"
-        # Robustez: se prefieren las que tampoco tienen déficit en la banda desfavorable P90
-        robustos = [i for i in aceptables if escenarios[i].robusto]
-        hay_robusta = bool(robustos)
-        aceptables = robustos or aceptables
+        if modo == "contingencia":
+            # Política de recorte (a): por omisión el recorte mínimo (*-CONT, P50); el plan
+            # robusto (*-CONT-P90) se ofrece como alternativa explícita.
+            if rech and rech.get("escenario") and _pide_mas_seguridad(self.ultimo_motivo):
+                aceptables = [i for i in aceptables if escenarios[i].robusto]
+            elif rech and rech.get("escenario"):
+                # Rechazo sin pedir más seguridad: solo medidas que recorten menos que la rechazada
+                limite = rech.get("recorte_kwh")
+                aceptables = [i for i in aceptables
+                              if limite is not None and escenarios[i].metricas["recorte_kwh"] < limite]
+            if not aceptables:
+                return self._escalar(conv, MOTIVO_SIN_MEDIDAS)
+        else:
+            if rech and rech.get("escenario"):
+                # Tras un rechazo se buscan medidas alternas menos invasivas que la rechazada
+                limite = rech.get("desplazado_kwh")
+                menos = [i for i in aceptables
+                         if limite is not None and escenarios[i].metricas["desplazado_kwh"] < limite]
+                aceptables = menos or aceptables
+            if not any(evaluacion[i]["aceptable"] for i in viables):
+                modo = "riesgo fuera de tolerancia"
+            # Robustez: se prefieren las que tampoco tienen déficit en la banda desfavorable P90
+            aceptables = [i for i in aceptables if escenarios[i].robusto] or aceptables
 
-        # Reglas 2 y 3 (orden lexicográfico) + menor riesgo e impacto al usuario
+        # Reglas 2 y 3 (orden lexicográfico) + menor riesgo e impacto al usuario.
+        # En contingencia manda el menor recorte (política de recorte mínimo).
         def clave(i):
             m = escenarios[i].metricas
-            return (m["deficit_kwh"], -round(m["renovable_pct"], 1), round(m["costo_mxn"], -1),
-                    evaluacion[i]["riesgo_max"], m["desplazado_kwh"], m["recorte_kwh"])
+            orden = (m["deficit_kwh"], -round(m["renovable_pct"], 1), round(m["costo_mxn"], -1),
+                     evaluacion[i]["riesgo_max"], m["desplazado_kwh"], m["recorte_kwh"])
+            return ((m["recorte_kwh"],) + orden) if modo == "contingencia" else orden
         elegido = min(aceptables, key=clave)
         esc = escenarios[elegido]
         base = escenarios.get("S0") or esc
@@ -817,9 +841,18 @@ class AgenteMeta(Agente):
         alims = "; ".join(f"{k} margen {a['margen_min_pct']} %, uso máx. {a['utilizacion_max_pct']} %"
                           + (f", recorte {a['recorte_kwh']:,.0f} kWh" if a["recorte_kwh"] else "")
                           for k, a in m["alimentadores"].items())
+        extra = m.get("recorte_adicional_robustez_kwh")
         if esc.robusto:
             robustez = ("Robustez: sin déficit en el escenario desfavorable P90 (demanda P90, renovables P10); "
                         f"margen mínimo P90 {m['margen_red_min_p90_pct']} %.")
+            if m.get("plan_minimo") and extra is not None:
+                robustez += (f" Recorta {extra:,.0f} kWh más que el plan mínimo {m['plan_minimo']} para evitar "
+                             f"{m['deficit_p90_evitado_kwh']:,.0f} kWh de déficit si la demanda llega a P90.")
+        elif m.get("alternativa_robusta") and extra is not None:
+            robustez = (f"Robustez: este es el recorte mínimo; si la demanda llega a P90 (con renovables en P10) "
+                        f"quedarían {m['deficit_p90_kwh']:,.0f} kWh de déficit. Alternativa robusta "
+                        f"{m['alternativa_robusta']}: recorta {extra:,.0f} kWh adicionales y evita ese riesgo. "
+                        "Para recibirla, rechaza esta propuesta pidiendo más seguridad.")
         else:
             robustez = (f"Robustez: ninguna estrategia viable es robusta; en el escenario desfavorable P90 quedarían "
                         f"{m['deficit_p90_kwh']:,.0f} kWh de déficit. Se trata como riesgo (ISO/IEC 23894) y "
@@ -840,6 +873,8 @@ class AgenteMeta(Agente):
         decision = {"escenario": elegido, "modo": modo, "justificacion": justificacion,
                     "desplazado_kwh": m["desplazado_kwh"], "recorte_kwh": m["recorte_kwh"],
                     "robusto": esc.robusto, "hay_alternativa_robusta": hay_robusta,
+                    "recorte_adicional_robustez_kwh": extra,
+                    "alternativa_robusta": m.get("alternativa_robusta"),
                     "rechazos_previos": self.rechazos, "alternativas_evaluadas": len(candidatos)}
         self.pizarra.escribir("C", "decision", decision)
         self.log(f"selecciona {elegido} ({modo}{', robusta' if esc.robusto else ', no robusta'}) "
@@ -1006,6 +1041,17 @@ class RecomendacionFinal(Agente):
         with open(os.path.join(self.salida, "reporte_electriagent.json"), "w", encoding="utf-8") as f:
             json.dump(reporte, f, ensure_ascii=False, indent=2, default=str)
         self.log(f"recomendación {reporte['estado']} entregada al usuario")
+
+
+_PALABRAS_SEGURIDAD = ("segur", "robust", "p90", "riesgo", "estabil", "conservador", "proteg", "margen")
+
+
+def _pide_mas_seguridad(motivo: str) -> bool:
+    """¿El operador rechazó pidiendo más seguridad (plan robusto) en lugar de menos recorte?"""
+    texto = motivo.lower()
+    for a, b in (("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u")):
+        texto = texto.replace(a, b)
+    return any(palabra in texto for palabra in _PALABRAS_SEGURIDAD)
 
 
 def _texto_regla1(esc: "Escenario", base: "Escenario") -> str:

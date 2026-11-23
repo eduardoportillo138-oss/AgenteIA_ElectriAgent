@@ -271,6 +271,12 @@ function pintarDecision(ses) {
     if (p.modo === "contingencia") {
       hijos.push(h("p", { class: "error" }, "La demanda prevista supera la capacidad disponible. Esta propuesta recorta parcialmente cargas no críticas, solo los kW necesarios y por prioridad; el hospital conserva el 100 % de su suministro."));
     }
+    // Política de recorte: mínimo por omisión; el plan robusto P90 se ofrece como alternativa
+    if (p.recorte_adicional_robustez_kwh != null) {
+      hijos.push(h("p", { class: "robustez" }, p.alternativa_robusta
+        ? `Alternativa robusta ${p.alternativa_robusta}: recorta ${num.format(p.recorte_adicional_robustez_kwh)} kWh adicionales y evita ${num.format(p.metricas.deficit_p90_kwh)} kWh de déficit si la demanda llega a P90. Para recibirla, rechaza esta propuesta pidiendo más seguridad.`
+        : `Plan robusto: recorta ${num.format(p.recorte_adicional_robustez_kwh)} kWh más que el recorte mínimo para no tener déficit si la demanda llega a P90.`));
+    }
     const lista = h("ul", { class: "acciones" },
       p.acciones.map((a) => a.startsWith("  ·")
         ? h("li", { class: "detalle" }, a.replace(/^\s*·\s*/, ""))

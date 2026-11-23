@@ -239,7 +239,11 @@ def prueba_recorte_parcial():
                     assert (d.recorte[k] <= d.deficit[k] * 1.05 + TOL).all(), (cond, alim, esc.id, k)
                 revisados += 1
     assert revisados >= 4
-    print("OK  recorte parcial: la energía recortada nunca supera el déficit + 5 %")
+    # Política (a): la recomendación en contingencia recorta como máximo el déficit central + 5 %
+    for cond, alim in CONTINGENCIAS:
+        esc = _recomendado(_sistema(cond, alim))
+        assert esc.metricas["recorte_kwh"] <= esc.metricas["deficit_previo_kwh"] * 1.05 + TOL, (cond, alim, esc.id)
+    print("OK  recorte parcial: la energía recortada nunca supera el déficit + 5 % (el propuesto, del déficit central)")
 
 
 def prueba_baja_renovable():
@@ -319,7 +323,8 @@ CONTRATO_VISTA = {"id", "estado", "periodo", "condicion", "dia_recomendado", "co
                   "motivo_escalamiento", "terminado"}
 CONTRATO_PROPUESTA = {"escenario", "nombre", "estrategia", "modo", "justificacion", "acciones", "metricas",
                       "metricas_base", "evaluacion_iso", "serie", "robusto", "metricas_p90",
-                      "base_planificacion", "alimentadores", "recorte_por_carga"}
+                      "base_planificacion", "alimentadores", "recorte_por_carga",
+                      "recorte_adicional_robustez_kwh", "alternativa_robusta"}
 CONTRATO_METRICAS = {"costo_mxn", "renovable_pct", "margen_min_pct", "desplazado_kwh", "deficit_kwh",
                      "recorte_kwh", "perdidas_kwh", "deficit_p90_kwh"}
 CONTRATO_SERIE = {"demanda_base", "demanda_recomendada", "renovable", "capacidad_kw", "horas_suspension",
@@ -539,6 +544,48 @@ def prueba_h1_api_escalada():
     print("OK  H1: por la API la contingencia agotada queda escalada con su motivo")
 
 
+# ------------------------------------------------ H2: política de recorte (a)
+def prueba_h2_politica_recorte():
+    """Política (a): la propuesta inicial de toda contingencia es el recorte mínimo (P50),
+    recorta como máximo el déficit central + 5 %, y ofrece el plan P90 como alternativa con
+    recorte_adicional_robustez_kwh = recorte P90 - recorte P50. Si el operador pide más
+    seguridad, la siguiente propuesta es la P90."""
+    revisadas = 0
+    for periodo in ("1s", "1m"):
+        for cond, alim in CONTINGENCIAS:
+            s = _sistema_web(cond, alim, periodo)
+            d, esc = _propuesta_actual(s)
+            m = esc.metricas
+            assert esc.estrategia == "contingencia" and esc.base_planificacion == "P50", (cond, alim, esc.id)
+            assert m["recorte_kwh"] <= m["deficit_previo_kwh"] * 1.05 + TOL, (cond, alim, esc.id)
+            lista = {e.id: e for e in s.pizarra.leer("escenarios")["lista"]}
+            robusto = lista[m["alternativa_robusta"]]
+            assert robusto.base_planificacion == "P90" and robusto.robusto
+            extra = robusto.metricas["recorte_kwh"] - m["recorte_kwh"]
+            assert abs(m["recorte_adicional_robustez_kwh"] - extra) <= TOL and extra >= 0, (cond, alim)
+            assert d["recorte_adicional_robustez_kwh"] == m["recorte_adicional_robustez_kwh"]
+            assert any("Alternativa robusta" in j for j in d["justificacion"])
+            s.responder(False, "Quiero más seguridad ante la demanda", "Auditoría")
+            assert s.en_espera, (cond, alim)
+            d2, esc2 = _propuesta_actual(s)
+            assert esc2.id == robusto.id and esc2.metricas["deficit_kwh"] == 0, (cond, alim, esc2.id)
+            revisadas += 1
+    srv = _servidor()
+    pedir = _api_cliente(srv)
+    try:
+        st, v = pedir("POST", "/sesiones", {"condicion": "falla_alimentador", "alimentador": "A1"})
+        p = v["propuesta"]
+        assert p["escenario"].endswith("-CONT") and p["recorte_adicional_robustez_kwh"] > 0
+        assert p["alternativa_robusta"].endswith("-CONT-P90")
+        alt = {a["id"]: a for a in v["alternativas"]}
+        assert abs(alt[p["alternativa_robusta"]]["recorte_kwh"] - p["metricas"]["recorte_kwh"]
+                   - p["recorte_adicional_robustez_kwh"]) <= TOL
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    print(f"OK  H2: {revisadas} contingencias proponen el recorte mínimo, ofrecen el P90 y lo dan al pedir más seguridad")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -556,4 +603,5 @@ if __name__ == "__main__":
         prueba_h1_rechazos_sucesivos()
         prueba_h1_barrido()
         prueba_h1_api_escalada()
+        prueba_h2_politica_recorte()
     print("\nTodas las pruebas pasaron.")
