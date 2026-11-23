@@ -627,6 +627,38 @@ def prueba_h3_web_con_token():
     print("OK  H3: la web pide el token tras un 401 y lo envía en config, sesión, aprobación, reporte y bitácora")
 
 
+# ------------------------------------------------ H4: la web firma las decisiones
+def prueba_h4_firma_web():
+    """Una decisión enviada como la web (con `operador`) queda en el historial, la pizarra,
+    el reporte y la bitácora; web/app.js pide el nombre y lo envía."""
+    import servidor
+    srv = _servidor()
+    pedir = _api_cliente(srv)
+    web = {"Origin": "http://localhost:8081"}        # mismas cabeceras que manda un navegador
+    try:
+        st, v = pedir("POST", "/sesiones", {"condicion": "ola_calor"}, cabeceras=web)
+        sid = v["id"]
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion",
+                      {"aprobado": False, "motivo": "Muy invasiva", "operador": "Operadora Web"}, cabeceras=web)
+        assert st == 200 and v["historial"][-1]["operador"] == "Operadora Web"
+        st, v = pedir("POST", f"/sesiones/{sid}/aprobacion", {"aprobado": True, "operador": "Operadora Web"},
+                      cabeceras=web)
+        assert st == 200 and v["estado"] == "aprobada"
+        assert [d["operador"] for d in v["historial"]] == ["Operadora Web", "Operadora Web"]
+        s = servidor.obtener(sid)
+        assert s.pizarra.leer("aprobacion")["operador"] == "Operadora Web"
+        assert [e["operador"] for e in s.bitacora.eventos if e["tipo"] == "decision_humana"] == ["Operadora Web"] * 2
+        st, rep = pedir("GET", f"/sesiones/{sid}/reporte", cabeceras=web)
+        assert rep["aprobacion"]["operador"] == "Operadora Web"
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    js = open(os.path.join(AQUI, "web", "app.js"), encoding="utf-8").read()
+    assert "JSON.stringify({ aprobado, motivo, operador })" in js
+    assert "Nombre de quien decide" in js and "localStorage" in js and "por ${x.operador}" in js
+    print("OK  H4: la web firma cada decisión; la firma queda en historial, pizarra, reporte y bitácora")
+
+
 if __name__ == "__main__":
     with contextlib.redirect_stderr(io.StringIO()):
         prueba_jerarquia()
@@ -646,4 +678,5 @@ if __name__ == "__main__":
         prueba_h1_api_escalada()
         prueba_h2_politica_recorte()
         prueba_h3_web_con_token()
+        prueba_h4_firma_web()
     print("\nTodas las pruebas pasaron.")

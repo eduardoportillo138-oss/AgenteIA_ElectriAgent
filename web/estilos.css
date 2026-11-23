@@ -205,6 +205,9 @@ input[type="password"], input[type="text"] {
 .insignia.riesgo { border-color: var(--alerta); color: var(--alerta); }
 .robustez { margin-top: .6rem; font-size: .92rem; border-left: 3px solid var(--cian); padding-left: .7rem; }
 .recortes { margin-top: .4rem; }
+.firma { margin-top: 1.2rem; display: grid; gap: .35rem; }
+.firma input { max-width: 24rem; }
+.firma-aviso { font-size: .88rem; color: var(--suave); }
 .recortes .barra-recorte { height: 6px; background: var(--fondo); border-radius: 3px; margin-top: .3rem; overflow: hidden; }
 .recortes .barra-recorte i { display: block; height: 100%; background: var(--alerta); }
 .alimentadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .8rem; margin-top: .4rem; }

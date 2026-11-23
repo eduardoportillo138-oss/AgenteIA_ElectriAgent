@@ -54,6 +54,15 @@ function guardarToken(t) {
 
 class ErrorAcceso extends Error {}
 
+// Nombre de quien firma las decisiones: el único dato personal que guarda la web (localStorage)
+const CLAVE_OPERADOR = "electriagent.operador";
+function leerOperador() {
+  try { return localStorage.getItem(CLAVE_OPERADOR) || ""; } catch { return ""; }
+}
+function guardarOperador(n) {
+  try { n ? localStorage.setItem(CLAVE_OPERADOR, n) : localStorage.removeItem(CLAVE_OPERADOR); } catch { /* sin almacenamiento */ }
+}
+
 function cabeceras(extra = {}) {
   const t = leerToken();
   return { ...extra, ...(t ? { Authorization: `Bearer ${t}` } : {}) };
@@ -394,7 +403,7 @@ function pintarDecision(ses) {
   if (ses.historial.length) {
     hijos.push(h("h3", {}, "Tus decisiones en esta sesión"));
     hijos.push(h("ul", { class: "historial" }, ses.historial.map((x) =>
-      h("li", {}, `${x.aprobado ? "Aprobaste" : "Rechazaste"} ${x.escenario}${x.motivo ? `: “${x.motivo}”` : ""}`))));
+      h("li", {}, `${x.aprobado ? "Aprobada" : "Rechazada"} ${x.escenario}${x.operador ? ` por ${x.operador}` : " (sin firma)"}${x.motivo ? `: “${x.motivo}”` : ""}`))));
   }
 
   if (ses.estado === "en_espera") {
@@ -406,10 +415,25 @@ function pintarDecision(ses) {
       h("div", { class: "botonera" },
         h("button", { class: "boton boton-peligro", type: "button", onclick: () => decidir(false, motivo.value, error) }, "Enviar rechazo"),
         h("button", { class: "boton boton-secundario", type: "button", onclick: () => { rechazo.hidden = true; botones.hidden = false; } }, "Cancelar")));
-    const botones = h("div", { class: "botonera" },
-      h("button", { class: "boton boton-aprobar", type: "button", onclick: () => decidir(true, "", error) }, "Aprobar recomendación"),
-      h("button", { class: "boton boton-secundario", type: "button", onclick: () => { botones.hidden = true; rechazo.hidden = false; motivo.focus(); } }, "Rechazar y pedir alternativa"));
-    hijos.push(botones, rechazo, error);
+    const aprobar = h("button", { class: "boton boton-aprobar", type: "button", onclick: () => decidir(true, "", error) }, "Aprobar recomendación");
+    const rechazar = h("button", { class: "boton boton-secundario", type: "button", onclick: () => { botones.hidden = true; rechazo.hidden = false; motivo.focus(); } }, "Rechazar y pedir alternativa");
+    const botones = h("div", { class: "botonera" }, aprobar, rechazar);
+    // Firma: sin nombre no se puede decidir (trazabilidad ISO/IEC 5338)
+    const aviso = h("p", { class: "firma-aviso", id: "firma-aviso" });
+    const nombre = h("input", { id: "operador", type: "text", maxlength: 80, autocomplete: "name",
+      value: leerOperador(), placeholder: "Ej.: Ing. Laura Méndez", "aria-describedby": "firma-aviso" });
+    const actualizarFirma = () => {
+      const n = nombre.value.trim();
+      guardarOperador(n);
+      const falta = !n;
+      [aprobar, rechazar].forEach((b) => (b.disabled = falta));
+      document.querySelectorAll(".rechazo .boton-peligro").forEach((b) => (b.disabled = falta));
+      aviso.textContent = falta ? "Escribe tu nombre para firmar la decisión: queda en la bitácora con ella." : `Firmarás como ${n}.`;
+    };
+    nombre.addEventListener("input", actualizarFirma);
+    const firma = h("div", { class: "firma" }, h("label", { class: "campo", for: "operador" }, h("span", {}, "Nombre de quien decide"), nombre), aviso);
+    hijos.push(firma, botones, rechazo, error);
+    queueMicrotask(actualizarFirma);
   } else if (ses.terminado) {
     hijos.push(h("div", { class: "botonera" },
       h("button", { class: "boton boton-principal", type: "button",
@@ -421,13 +445,18 @@ function pintarDecision(ses) {
 
 async function decidir(aprobado, motivo, error) {
   error.textContent = "";
+  const operador = leerOperador();
+  if (!operador) {
+    error.textContent = "Escribe tu nombre para firmar la decisión.";
+    return;
+  }
   if (!aprobado && !motivo.trim()) {
     error.textContent = "Escribe qué no te convence para que el sistema pueda replantear la propuesta.";
     return;
   }
   document.querySelectorAll("#decision button").forEach((b) => (b.disabled = true));
   try {
-    const ses = await pedir(`/sesiones/${estado.sesion.id}/aprobacion`, { method: "POST", body: JSON.stringify({ aprobado, motivo }) });
+    const ses = await pedir(`/sesiones/${estado.sesion.id}/aprobacion`, { method: "POST", body: JSON.stringify({ aprobado, motivo, operador }) });
     await mostrar(ses);
     $("decision").focus();
   } catch (e) {
