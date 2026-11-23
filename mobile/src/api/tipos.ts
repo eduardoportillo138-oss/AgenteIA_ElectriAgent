@@ -126,6 +126,11 @@ export interface Metricas {
   base_planificacion?: string;
   recorte_por_carga_kwh?: Record<string, number>;
   alimentadores?: Record<string, ResumenAlimentador>;
+  // Política de recorte: plan mínimo (P50) por omisión y plan robusto (P90) como alternativa
+  recorte_adicional_robustez_kwh?: number;
+  deficit_p90_evitado_kwh?: number;
+  alternativa_robusta?: string;
+  plan_minimo?: string;
 }
 
 export interface Riesgo {
@@ -206,6 +211,10 @@ export interface Propuesta {
   metricas_p90?: Metricas;
   alimentadores?: Record<string, ResumenAlimentador>;
   recorte_por_carga?: RecorteCarga[];
+  /** kWh que el plan robusto P90 recorta de más frente al recorte mínimo (solo en contingencia). */
+  recorte_adicional_robustez_kwh?: number | null;
+  /** Id del plan robusto ofrecido como alternativa (cuando la propuesta es el recorte mínimo). */
+  alternativa_robusta?: string | null;
 }
 
 export interface Alternativa {
@@ -222,6 +231,7 @@ export interface Alternativa {
   robusto?: boolean;
   deficit_p90_kwh?: number;
   utilizacion_max_pct?: number;
+  recorte_adicional_robustez_kwh?: number | null;
 }
 
 export interface Anomalia {

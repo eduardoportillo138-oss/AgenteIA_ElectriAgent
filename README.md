@@ -93,7 +93,7 @@ Para probar en el navegador (Expo Web): `npx expo start --web`. El servidor ya p
 |---|---|
 | Analizar | Periodo (1 día a 1 año), condición de la red del catálogo de `/api/config` (con alimentador o porcentaje si aplica) y "Analizar consumo" |
 | Recorrido | Grafo A–H con la disposición vertical de la web. Las aristas se iluminan en orden con su peso y se muestra el costo de coordinación. G pulsa en amarillo mientras espera la decisión. Respeta "reducir movimiento" |
-| Propuesta | Acciones, cifras frente a la operación actual, justificación de las reglas 1–4, aviso de contingencia, recorte parcial por carga, detalle por alimentador y robustez P90. Barra fija con "Aprobar recomendación" y "Rechazar y pedir alternativa" |
+| Propuesta | Acciones, cifras frente a la operación actual, justificación de las reglas 1–4, aviso de contingencia, recorte parcial por carga, detalle por alimentador, robustez P90 y, en contingencia, la alternativa robusta con su recorte adicional (`recorte_adicional_robustez_kwh`). Barra fija con "Aprobar recomendación" y "Rechazar y pedir alternativa" |
 | Detalle | Gráfica de 24 h (tarifas, renovables, límite, banda P10–P90 y selector Subestación/A1/A2), consumo por carga, anomalías, ISO 23894/42005/5338, escenarios y bitácora |
 | Historial | Sesiones de `/api/sesiones` y copias locales. Si una sesión expiró en el servidor (404), abre la copia local en solo lectura |
 | Resultado | Estado aprobada o escalada, quién firmó, y compartir el reporte y la bitácora en JSON |
