@@ -15,7 +15,7 @@ import numpy as np
 
 from agentes import (AgenteAprendizaje, AgenteDeliberativo, AgenteMeta,
                      AprobacionHumana, CapturaIoT, EvaluadorISO, RecomendacionFinal, Usuario)
-from condiciones import CONDICIONES, resolver
+from condiciones import CONDICIONES, resolver, validar_personalizada
 from coordinacion import BusCoordinacion, Bitacora, Pizarra
 from modelo_red import PERIODOS, RedDistribucion, SimuladorIoT, red_ejemplo
 
@@ -66,7 +66,11 @@ def crear_sistema(periodo: str = "1m", condicion: str = "normal", modo: str = "i
                   rechazos: int = 0, falla: str = "ninguna", semilla: int = 7,
                   salida: str = "salida", ruta_memoria: str | None = None,
                   verbose: bool = True, fin: datetime | None = None, alimentador: str | None = None,
-                  crecimiento_pct: float | None = None) -> Sistema:
+                  crecimiento_pct: float | None = None,
+                  condicion_personalizada: dict | None = None) -> Sistema:
+    """condicion_personalizada: gancho SOLO para pruebas (pruebas_adversas.py). Sustituye la
+    condición del catálogo en el agente E por factores validados con
+    condiciones.validar_personalizada. No se expone en la API, la web ni la app."""
     if periodo not in PERIODOS:
         raise ValueError(f"Periodo no válido: {periodo}")
     if condicion not in CONDICIONES:
@@ -79,6 +83,7 @@ def crear_sistema(periodo: str = "1m", condicion: str = "normal", modo: str = "i
     resolver(condicion, **parametros)        # valida los parámetros antes de arrancar
     if falla not in FALLAS:
         raise ValueError(f"Falla no válida: {falla}")
+    personalizada = None if condicion_personalizada is None else validar_personalizada(condicion_personalizada)
 
     os.makedirs(salida, exist_ok=True)
     red = red_ejemplo()
@@ -93,7 +98,8 @@ def crear_sistema(periodo: str = "1m", condicion: str = "normal", modo: str = "i
     AgenteAprendizaje("D", bus, pizarra,
                       ruta_memoria=ruta_memoria or os.path.join(salida, "memoria_aprendizaje.json"),
                       fallar=falla == "aprendizaje")
-    AgenteDeliberativo("E", bus, pizarra, red=red, fallar=falla == "deliberativo")
+    AgenteDeliberativo("E", bus, pizarra, red=red, fallar=falla == "deliberativo",
+                       condicion_personalizada=personalizada)
     EvaluadorISO("F", bus, pizarra, fallar=falla == "iso")
     aprobacion = AprobacionHumana("G", bus, pizarra, modo=modo, rechazos_auto=rechazos)
     final = RecomendacionFinal("H", bus, pizarra, red=red, periodo=periodo, salida=salida)

@@ -1,0 +1,73 @@
+{
+  "modo": "completo",
+  "periodos": [
+    "1d",
+    "1s",
+    "1m",
+    "6m",
+    "1a"
+  ],
+  "corridas": 550,
+  "filas": 596,
+  "invariantes_evaluadas": 5458,
+  "invariantes_ok": 5427,
+  "pct_invariantes_ok": 99.43,
+  "esperados_evaluados": 337,
+  "esperados_ok": 298,
+  "rendimiento": {
+    "api": {
+      "sesiones": 20,
+      "p50_s": 2.79,
+      "p95_s": 4.96,
+      "max_s": 5.53,
+      "periodos": [
+        "1a",
+        "1d",
+        "1m",
+        "1s",
+        "6m"
+      ]
+    },
+    "analisis": {
+      "1d": {
+        "mediana_s": 0.041,
+        "max_s": 0.046
+      },
+      "1s": {
+        "mediana_s": 0.046,
+        "max_s": 0.056
+      },
+      "1m": {
+        "mediana_s": 0.109,
+        "max_s": 0.239
+      },
+      "6m": {
+        "mediana_s": 0.376,
+        "max_s": 0.389
+      },
+      "1a": {
+        "mediana_s": 0.618,
+        "max_s": 0.674
+      }
+    },
+    "maquina": {
+      "sistema": "Windows-11-10.0.26200-SP0",
+      "procesador": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+      "nucleos": 12,
+      "python": "3.13.14",
+      "numpy": "2.2.6"
+    }
+  },
+  "defectos": {
+    "A1": "Una falla en B, G o H tumba al supervisor (KeyError en AgenteMeta._manejar_falla)",
+    "A2": "Un medidor sin ninguna lectura válida hace fallar a B (np.interp sin puntos) y, por A1, rompe el flujo",
+    "A3": "Demanda nula: división entre cero en desplazado_pct; E falla dos veces y se escala en lugar de proponer",
+    "A4": "Si la red no alcanza ni para la carga crítica, el escalamiento no lo dice",
+    "A5": "La cobertura de bandas (ISO/IEC 5338) solo valida la demanda: un pronóstico renovable optimista no se detecta",
+    "A6": "Con 1 día de historial la banda P10-P90 es más estrecha que con 1 mes (subestima la incertidumbre)",
+    "A8": "Con historial corto (1d, 1s) las lecturas negativas producen una referencia negativa: D reemplaza lecturas válidas, el pronóstico sale negativo y P90 < P10",
+    "A9": "D no detecta un sensor congelado: sin detector de valor constante, lo marca solo si el valor se aleja de la referencia (0 % en 1d y 1s, 86 % en 1m)",
+    "A10": "El pronóstico ignora el tipo de día: si el historial termina en fin de semana el MAPE sube a ~19 % y la alerta de deriva queda siempre activa",
+    "A7": "La API responde 500 ante tipos JSON inesperados o un Content-Length inválido"
+  }
+}
